@@ -7,12 +7,41 @@ class Entity(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((32, 32))
         self.image.fill(color)
+
         self.rect = self.image.get_rect()
         self.rect.centerx = init_pos[0]
         self.rect.bottom = init_pos[1]
 
     def update(self):
         pass
+
+class HealthBar(Entity):
+    def __init__(self, entity):
+        pygame.sprite.Sprite.__init__(self)
+        self.entity = entity
+        
+        self.image = pygame.Surface((32, 4))
+        self.image.fill(GREY)
+        self.prev_hp = -1
+        
+    def update(self):
+        hp_percentage = self.entity.stats['hp'] / self.entity.stats['max_hp']
+        # TODO: only update when HP changed
+        
+        if hp_percentage != self.prev_hp:
+            self.prev_hp = hp_percentage
+            healthbar = pygame.Surface((32 * hp_percentage, 4))
+            healthbar.fill(GREEN)
+            self.image.fill(GREY)
+            self.image.blit(healthbar, (0,0))
+
+        self.rect = self.image.get_rect()
+        self.rect.centerx = self.entity.rect.centerx
+        self.rect.bottom = self.entity.rect.bottom - 38
+        
+        if not self.entity.alive():
+            self.kill()
+        
 
 
 class Player(Entity):
@@ -25,7 +54,9 @@ class Player(Entity):
 
         self.log = {'attacking': False}
         self.stats = {'attack_speed': 5,
-                      'attack': 100}  # min: 0, max: FPS
+                      'attack': 100,
+                      'hp': 100,
+                      'max_hp': 100} 
 
         self.anim_counter = 0
 
@@ -83,6 +114,7 @@ class Enemy(Entity):
         self.log = {'attacking': False}
         self.stats = {'attack_speed': 5,
                       'hp': 1000,
+                      'max_hp': 1000,
                       'defense': 0.3} 
 
         self.anim_counter = 0

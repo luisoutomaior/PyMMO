@@ -18,9 +18,18 @@ players.add(Player(BLUE))
 enemies = pygame.sprite.Group()
 enemies.add(Enemy())
 
+ui = pygame.sprite.Group()
+
+for entity in players:
+    ui.add(HealthBar(entity))
+
+for entity in enemies:
+    ui.add(HealthBar(entity))
+
 all_sprites = pygame.sprite.Group()
 all_sprites.add(players)
 all_sprites.add(enemies)
+all_sprites.add(ui)
 
 running = True
 while running:
@@ -40,8 +49,6 @@ while running:
                     hitted.receive_damage(CALCULATE_DAMAGE(hitting.stats, 
                                                            hitted.stats,
                                                            NORMAL_ATTACK))
-
-    # print(bool(hits))
 
     screen.fill(BLACK)
     all_sprites.draw(screen)
