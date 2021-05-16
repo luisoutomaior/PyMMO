@@ -1,6 +1,6 @@
 
-WIDTH = 480
-HEIGHT = 600
+WIDTH = 256
+HEIGHT = 256
 FPS = 60
 
 WHITE = (255, 255, 255)
@@ -15,9 +15,10 @@ PURPLE = (128, 0, 255)
 NORMAL_ATTACK = 0
 
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 12346
-SERVER_TIMEOUT = 0.1
-CLIENT_TIMEOUT = 0.01
+# SERVER_IP = '10.0.0.161'
+SERVER_PORT = 12347
+SERVER_TIMEOUT = 0.001
+CLIENT_TIMEOUT = 0.001
 
 
 def CALCULATE_DAMAGE(attacker_stats, attacked_stats, kind=NORMAL_ATTACK):
@@ -32,7 +33,8 @@ def CALCULATE_DAMAGE(attacker_stats, attacked_stats, kind=NORMAL_ATTACK):
 
 def INIT_STATS(**kwargs):
 
-    stats= {'move_speed': 8,
+    stats= {'alive': True,
+            'move_speed': 8,
             'attack_speed': 5,
             'attack': 5,
             'defense': 0.3,

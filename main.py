@@ -13,6 +13,8 @@ from pprint import pprint as print
 
 
 pygame.init()
+
+font = pygame.font.SysFont('arial',  8)
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hysteresis")
@@ -34,7 +36,9 @@ while running:
             except:
                 continue
 
-            # print('curr id:', id, 'received:', data)
+            if isinstance(data, str) and data == 'kill':
+                print(data)
+                exit('Killed by server')
 
             if id is None and not isinstance(data, str):
                 print('still needs id')
@@ -56,29 +60,28 @@ while running:
                 all_sprites = pygame.sprite.Group()
 
                 for player in data['players']:
-                    print('id:' + player['id'] + ' vs ' + str(id))
                     if player['id'] == id:
                         color = PURPLE
                     else:
                         color = BLUE
                         
-                    print('color:' + str(color))
                         
                     sprite = Player(entity=player,
                                     color=color)
 
                     ui.add(HealthBar(sprite))
+                    ui.add(TitleBar(sprite, font, 'Player'))
                     players.add(sprite)
-
+                    
                     if player['id'] == id:
                         main_player = sprite
                         main_player.main = True
-                        
 
                 for enemy in data['enemies']:
                     sprite = Enemy(entity=enemy,
                                    color=YELLOW)
                     ui.add(HealthBar(sprite))
+                    ui.add(TitleBar(sprite, font, 'Enemy'))
                     enemies.add(sprite)
 
                 all_sprites.add(players)
@@ -100,10 +103,9 @@ while running:
 
             hits = pygame.sprite.groupcollide(players, all_sprites, False, False)
 
-            response = {'commands': []}
+            response = {'commands': [], 'id': id}
             if hits:
                 for hitting in hits:
-                    print(hits)
                     if hitting.stats['attacking']:
                         for hitted in hits[hitting]:
                             if hitted is not hitting:
@@ -125,11 +127,13 @@ while running:
                                                 'hitted': hitted.entity}
                                 response['commands'].append({'damage': damage_command})
                                 
-                                server.send(pickle.dumps(damage_command))
+                                # server.send(pickle.dumps(response))
 
-            response['commands'].append({'movement': main_player.entity})
+            if main_player.stats['moving']:
+                response['commands'].append({'movement': main_player.entity})
 
-            server.send(pickle.dumps(response))
+            if len(response['commands']):
+                server.send(pickle.dumps(response))
             
             screen.fill(BLACK)
             all_sprites.draw(screen)

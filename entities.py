@@ -3,6 +3,7 @@ from macros import *
 from copy import deepcopy
 from pprint import pprint as print
 
+
 class Entity(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
         self.entity = entity
@@ -21,17 +22,21 @@ class Entity(pygame.sprite.Sprite):
         self.rect.centery = self.pos[1]
 
     def update(self):
-        if self.stats['hp'] <= 0:
-            self.die()
         self.image.fill(self.color)
-
+        self.rect.x = self.entity['pos'][0]
+        self.rect.y = self.entity['pos'][1]
+        
     def receive_damage(self, damage):
         hp = self.stats['hp']
         self.stats['hp'] =  hp - damage
         new_hp = self.stats['hp']
         id = self.entity['id']
         print(f'{id} got {damage} of damage. current hp: {hp}. new hp: {new_hp}')
-
+        
+        if self.stats['hp'] <= 0:
+            self.stats['alive'] = False
+            self.die()
+            
     def die(self):
         print(str(self.entity['id']) + ' is DEAD')
         self.kill()
@@ -47,9 +52,10 @@ class HealthBar(Entity):
         self.image.fill(GREY)
 
         self.prev_hp = -1
+        
 
     def update(self):
-        if self.entity.alive():
+        if self.entity.entity['stats']['alive'] and self.entity.alive():
             hp_percentage = self.entity.stats['hp'] / \
                 self.entity.stats['max_hp']
             if hp_percentage != self.prev_hp:
@@ -66,6 +72,28 @@ class HealthBar(Entity):
             self.kill()
 
 
+class TitleBar(Entity):
+    def __init__(self, entity_sprite, font, name):
+        entity = deepcopy(entity_sprite.entity)
+        super(TitleBar, self).__init__(entity)
+        self.entity = entity_sprite
+
+        self.image = pygame.Surface((32, 10))
+        self.image.fill(GREY)
+
+        self.text = font.render(name + entity['id'], False, WHITE)
+    def update(self):
+        if self.entity.entity['stats']['alive'] and self.entity.alive():
+            self.image.fill(GREY)
+            self.image.blit(self.text, (0, 0))
+
+            self.rect = self.image.get_rect()
+            self.rect.centerx = self.entity.rect.centerx
+            self.rect.bottom = self.entity.rect.bottom - 40
+        else:
+            self.kill()
+
+
 class Player(Entity):
     def __init__(self, entity, color=BLUE):
         super(Player, self).__init__(entity=entity,
@@ -77,9 +105,10 @@ class Player(Entity):
 
         self.anim_counter = 0
         self.main = False
+        self.stats['moving'] = False
 
     def update(self):
-        super(Player, self).update()
+        
 
         if self.main:
             self.speed = (0, 0)
@@ -92,25 +121,33 @@ class Player(Entity):
                 self.speed = (0, -8)
             if keystate[pygame.K_DOWN]:
                 self.speed = (0, 8)
+                
+            if self.speed != (0, 0):
+                self.stats['moving'] = True
 
-            new_pos = (self.entity['pos'][0] + self.speed[0], 
-                    self.entity['pos'][1] + self.speed[1])
-            
-            self.entity['pos'] = new_pos
-            
-            self.rect.x = self.entity['pos'][0]
-            self.rect.y = self.entity['pos'][1]
+                new_pos = (self.entity['pos'][0] + self.speed[0], 
+                        self.entity['pos'][1] + self.speed[1])
+                
+                self.entity['pos'] = new_pos
+                
+                self.rect.x = self.entity['pos'][0]
+                self.rect.y = self.entity['pos'][1]
 
-            if self.rect.right > WIDTH:
-                self.rect.right = WIDTH
-            if self.rect.left < 0:
-                self.rect.left = 0
+                if self.rect.right > WIDTH:
+                    self.rect.right = WIDTH
+                if self.rect.left < 0:
+                    self.rect.left = 0
 
-            if self.rect.bottom > HEIGHT:
-                self.rect.bottom = HEIGHT
-            if self.rect.top < 0:
-                self.rect.top = 0
+                if self.rect.bottom > HEIGHT:
+                    self.rect.bottom = HEIGHT
+                if self.rect.top < 0:
+                    self.rect.top = 0
 
+                    
+            else:
+                self.stats['moving'] = False
+
+                
             if keystate[pygame.K_RETURN]:
                 self.attack()
 
@@ -121,7 +158,9 @@ class Player(Entity):
                     self.stats['attacking'] = False
             else:
                 self.image.fill(self.color)
-
+        
+        super(Player, self).update()
+        
     def attack(self):
         self.anim_counter = 300
         self.stats['attacking'] = True
