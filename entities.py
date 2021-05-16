@@ -1,7 +1,7 @@
 import pygame
 from macros import *
 from copy import deepcopy
-
+from pprint import pprint as print
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
@@ -12,6 +12,7 @@ class Entity(pygame.sprite.Sprite):
         
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((32, 32))
+        self.color = color
         self.image.fill(color)
 
         self.rect = self.image.get_rect()
@@ -20,8 +21,20 @@ class Entity(pygame.sprite.Sprite):
         self.rect.centery = self.pos[1]
 
     def update(self):
-        pass
+        if self.stats['hp'] <= 0:
+            self.die()
+        self.image.fill(self.color)
 
+    def receive_damage(self, damage):
+        hp = self.stats['hp']
+        self.stats['hp'] =  hp - damage
+        new_hp = self.stats['hp']
+        id = self.entity['id']
+        print(f'{id} got {damage} of damage. current hp: {hp}. new hp: {new_hp}')
+
+    def die(self):
+        print(str(self.entity['id']) + ' is DEAD')
+        self.kill()
 
 class HealthBar(Entity):
     def __init__(self, entity_sprite):
@@ -63,52 +76,54 @@ class Player(Entity):
         self.speed = (0, 0)
 
         self.anim_counter = 0
+        self.main = False
 
     def update(self):
         super(Player, self).update()
 
-        self.speed = (0, 0)
-        keystate = pygame.key.get_pressed()
-        if keystate[pygame.K_LEFT]:
-            self.speed = (-8, 0)
-        if keystate[pygame.K_RIGHT]:
-            self.speed = (8, 0)
-        if keystate[pygame.K_UP]:
-            self.speed = (0, -8)
-        if keystate[pygame.K_DOWN]:
-            self.speed = (0, 8)
+        if self.main:
+            self.speed = (0, 0)
+            keystate = pygame.key.get_pressed()
+            if keystate[pygame.K_LEFT]:
+                self.speed = (-8, 0)
+            if keystate[pygame.K_RIGHT]:
+                self.speed = (8, 0)
+            if keystate[pygame.K_UP]:
+                self.speed = (0, -8)
+            if keystate[pygame.K_DOWN]:
+                self.speed = (0, 8)
 
-        new_pos = (self.entity['pos'][0] + self.speed[0], 
-                   self.entity['pos'][1] + self.speed[1])
-        
-        self.entity['pos'] = new_pos
-        
-        self.rect.x = self.entity['pos'][0]
-        self.rect.y = self.entity['pos'][1]
+            new_pos = (self.entity['pos'][0] + self.speed[0], 
+                    self.entity['pos'][1] + self.speed[1])
+            
+            self.entity['pos'] = new_pos
+            
+            self.rect.x = self.entity['pos'][0]
+            self.rect.y = self.entity['pos'][1]
 
-        if self.rect.right > WIDTH:
-            self.rect.right = WIDTH
-        if self.rect.left < 0:
-            self.rect.left = 0
+            if self.rect.right > WIDTH:
+                self.rect.right = WIDTH
+            if self.rect.left < 0:
+                self.rect.left = 0
 
-        if self.rect.bottom > HEIGHT:
-            self.rect.bottom = HEIGHT
-        if self.rect.top < 0:
-            self.rect.top = 0
+            if self.rect.bottom > HEIGHT:
+                self.rect.bottom = HEIGHT
+            if self.rect.top < 0:
+                self.rect.top = 0
 
-        if keystate[pygame.K_RETURN]:
-            self.attack()
+            if keystate[pygame.K_RETURN]:
+                self.attack()
 
-        if self.stats['attacking']:
-            self.image.fill(RED)
-            self.anim_counter -= self.stats['attack_speed']
-            if self.anim_counter <= 0:
-                self.stats['attacking'] = False
-        else:
-            self.image.fill(BLUE)
+            if self.stats['attacking']:
+                self.image.fill(RED)
+                self.anim_counter -= self.stats['attack_speed']
+                if self.anim_counter <= 0:
+                    self.stats['attacking'] = False
+            else:
+                self.image.fill(self.color)
 
     def attack(self):
-        self.anim_counter = 30
+        self.anim_counter = 300
         self.stats['attacking'] = True
 
 
@@ -124,16 +139,3 @@ class Enemy(Entity):
     def update(self):
         super(Enemy, self).update()
 
-        if self.stats['hp'] <= 0:
-            self.die()
-
-    def receive_damage(self, damage):
-        hp = self.stats['hp']
-        self.stats['hp'] =  hp - damage
-        new_hp = self.stats['hp']
-        
-        print(f'{self} got {damage} of damage. current hp: {hp}. new hp: {new_hp}')
-
-    def die(self):
-        print(self, 'is DEAD')
-        self.kill()

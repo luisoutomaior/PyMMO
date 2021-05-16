@@ -6,6 +6,7 @@ import pickle
 import traceback
 from _thread import *
 import numpy as np
+from pprint import pprint as print
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -26,23 +27,31 @@ def threaded_client(conn, status):
         conn.send(pickle.dumps(status))
         ready_sockets, _, _ = select.select([conn], [], [], SERVER_TIMEOUT)
         if ready_sockets:
-                response = pickle.loads(conn.recv(1024))
                 try:
-
-                    if 'movement' in response['command']:
-                        for player in status['players']:
-                            if player['id'] == response['id']:
-                                player['pos'] = response['pos']
+                    response = pickle.loads(conn.recv(1024))
+                    if 'commands' in response:
+                        for command in response['commands']:
+                            if 'movement' in command:
+                                command = command['movement']
+                                for player in status['players']:
+                                    if player['id'] == command['id']:
+                                        player['pos'] = command['pos']
+                                        
+                            elif 'damage' in command:
+                                command = command['damage']
+                                # print(response)
                                 
-                    elif 'damage' in response['command']:
-                        print('\nreceived:', response)
-                        for enemy in status['enemies']:
-                            if enemy['id'] == response['hitted']['id']:
-                                enemy['stats']['hp'] = response['hitted']['stats']['hp']
-                                
-                            print('new enemy', enemy)
+                                if 'to-enemy' in command['type']:
+                                    for enemy in status['enemies']:
+                                        if enemy['id'] == command['hitted']['id']:
+                                            enemy['stats']['hp'] = command['hitted']['stats']['hp']
+                                        
+                                if 'to-player' in command['type']:
+                                    for player in status['players']:
+                                        if player['id'] == command['hitted']['id']:
+                                            player['stats']['hp'] = command['hitted']['stats']['hp']
                         
-                except:
+                except Exception as e:
                     traceback.print_exc()
     
 

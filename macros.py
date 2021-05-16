@@ -10,6 +10,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
+PURPLE = (128, 0, 255)
 
 NORMAL_ATTACK = 0
 
@@ -33,7 +34,7 @@ def INIT_STATS(**kwargs):
 
     stats= {'move_speed': 8,
             'attack_speed': 5,
-            'attack': 100,
+            'attack': 5,
             'defense': 0.3,
             'hp': 100,
             'max_hp': 100,
