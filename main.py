@@ -5,6 +5,7 @@ import select
 import pygame
 from macros import *
 from entities import *
+import pickle
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect((SERVER_IP, SERVER_PORT))
@@ -42,7 +43,7 @@ while running:
                                         CLIENT_TIMEOUT)
 
     if ready_sockets:
-        data = server.recv(1024)
+        data = pickle.loads(server.recv(1024))
         print('received:', data)
     else:
         pass
@@ -67,7 +68,7 @@ while running:
                     hitted.receive_damage(damage)
                     message = bytes(
                         f'{hitting.name} attacked {hitted.name}, damage: {damage} {new_hp}', "utf-8")
-                    server.send(message)
+                    server.send(pickle.dumps(message))
 
     screen.fill(BLACK)
     all_sprites.draw(screen)
