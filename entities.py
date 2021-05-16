@@ -2,20 +2,13 @@ import pygame
 from macros import *
 from copy import deepcopy
 
-class Entity:
-    def __init__(self, sprite_type, pos):
-        self.sprite_type = sprite_type
-        self.params = {'pos': pos}
 
-    def update(self):
-        pass
-
-
-class EntitySprite(pygame.sprite.Sprite):
+class Entity(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
         self.entity = entity
         self.name = self.entity['id']
         self.pos = self.entity['pos']
+        self.stats = self.entity['stats']
         
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((32, 32))
@@ -30,11 +23,11 @@ class EntitySprite(pygame.sprite.Sprite):
         pass
 
 
-class HealthBarSprite(EntitySprite):
+class HealthBar(Entity):
     def __init__(self, entity_sprite):
         entity = deepcopy(entity_sprite.entity)
         entity['id'] =  str(entity['id']) + '_HealthBar'
-        super(HealthBarSprite, self).__init__(entity)
+        super(HealthBar, self).__init__(entity)
         self.entity = entity_sprite
 
         self.image = pygame.Surface((32, 4))
@@ -60,26 +53,19 @@ class HealthBarSprite(EntitySprite):
             self.kill()
 
 
-class PlayerSprite(EntitySprite):
+class Player(Entity):
     def __init__(self, entity, color=BLUE):
-        super(PlayerSprite, self).__init__(entity=entity,
+        super(Player, self).__init__(entity=entity,
                                            color=color)
 
         self.rect.centerx = self.pos[0]
         self.rect.centery = self.pos[1]
         self.speed = (0, 0)
 
-        self.log = {'attacking': False}
-        self.stats = {'move_speed': 8,
-                      'attack_speed': 5,
-                      'attack': 100,
-                      'hp': 100,
-                      'max_hp': 100}
-
         self.anim_counter = 0
 
     def update(self):
-        super(PlayerSprite, self).update()
+        super(Player, self).update()
 
         self.speed = (0, 0)
         keystate = pygame.key.get_pressed()
@@ -113,46 +99,40 @@ class PlayerSprite(EntitySprite):
         if keystate[pygame.K_RETURN]:
             self.attack()
 
-        if self.log['attacking']:
+        if self.stats['attacking']:
             self.image.fill(RED)
             self.anim_counter -= self.stats['attack_speed']
             if self.anim_counter <= 0:
-                self.log['attacking'] = False
+                self.stats['attacking'] = False
         else:
             self.image.fill(BLUE)
 
     def attack(self):
         self.anim_counter = 30
-        self.log['attacking'] = True
+        self.stats['attacking'] = True
 
 
-class EnemySprite(EntitySprite):
+class Enemy(Entity):
     def __init__(self, entity, color=YELLOW, init_pos=(0, 0)):
-        super(EnemySprite, self).__init__(entity=entity,
+        super(Enemy, self).__init__(entity=entity,
                                           color=color)
 
-        self.rect.centerx = self.pos[0] + WIDTH / 2
-        self.rect.bottom = self.pos[1] + HEIGHT - 100
+        self.rect.centerx = self.pos[0]
+        self.rect.bottom = self.pos[1]
         self.speed = (0, 0)
 
-        self.log = {'attacking': False}
-        self.stats = {'attack_speed': 5,
-                      'hp': 1000,
-                      'max_hp': 1000,
-                      'defense': 0.3}
-
-        self.anim_counter = 0
-
     def update(self):
-        super(EnemySprite, self).update()
+        super(Enemy, self).update()
 
         if self.stats['hp'] <= 0:
             self.die()
 
     def receive_damage(self, damage):
         hp = self.stats['hp']
-        print(f'{self} got {damage} of damage. current hp: {hp}')
-        self.stats['hp'] -= damage
+        self.stats['hp'] =  hp - damage
+        new_hp = self.stats['hp']
+        
+        print(f'{self} got {damage} of damage. current hp: {hp}. new hp: {new_hp}')
 
     def die(self):
         print(self, 'is DEAD')

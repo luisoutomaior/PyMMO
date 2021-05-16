@@ -20,7 +20,6 @@ pygame.display.set_caption("Hysteresis")
 clock = pygame.time.Clock()
 
 
-
 id = None
 all_sprites = None
 main_player = None
@@ -30,7 +29,6 @@ while running:
     ready_sockets, _, _ = select.select([server], [], [],
                                         CLIENT_TIMEOUT)
     try:
-        print(ready_sockets)
         if ready_sockets:
             try:
                 data = pickle.loads(server.recv(1024))
@@ -42,36 +40,35 @@ while running:
             if id is None and not isinstance(data, str):
                 print('still needs id')
                 continue
-            
+
             elif id is None and isinstance(data, str):
                 id = data
                 print('new id', id)
                 continue
-            
+
             elif id is not None and not isinstance(data, dict):
                 print('not dict')
                 continue
-                
+
             elif id is not None and isinstance(data, dict):
-                players = pygame.sprite.Group()
                 enemies = pygame.sprite.Group()
+                players = pygame.sprite.Group()
                 ui = pygame.sprite.Group()
                 all_sprites = pygame.sprite.Group()
-                
+
                 for player in data['players']:
-                    sprite = PlayerSprite(entity=player,
-                                        color=BLUE)
-                    ui.add(HealthBarSprite(sprite))
+                    sprite = Player(entity=player,
+                                    color=BLUE)
+                    ui.add(HealthBar(sprite))
                     players.add(sprite)
-                    
-                    print(player['id'], id)
+
                     if player['id'] == id:
                         main_player = sprite
 
                 for enemy in data['enemies']:
-                    sprite = EnemySprite(entity=enemy,
-                                            color=YELLOW)
-                    ui.add(HealthBarSprite(sprite))
+                    sprite = Enemy(entity=enemy,
+                                   color=YELLOW)
+                    ui.add(HealthBar(sprite))
                     enemies.add(sprite)
 
                 all_sprites.add(players)
@@ -96,25 +93,36 @@ while running:
 
             if hits:
                 for hitting in hits:
-                    if isinstance(hitting, PlayerSprite) and hitting.log['attacking']:
+                    print(hits[hitting])
+                    if hitting.stats['attacking']:
                         for hitted in hits[hitting]:
                             damage = CALCULATE_DAMAGE(hitting.stats,
-                                                    hitted.stats,
-                                                    NORMAL_ATTACK)
+                                                      hitted.stats,
+                                                      NORMAL_ATTACK)
                             new_hp = hitted.stats['hp']
                             hitted.receive_damage(damage)
                             message = bytes(
                                 f'{hitting.name} attacked {hitted.name}, damage: {damage} {new_hp}', "utf-8")
-                            # server.send(pickle.dumps(message))
+                            print(message)
 
-            server.send(pickle.dumps(main_player.entity))
+                            damage_response = {'command': 'damage: player-to-enemy',
+                                               'hitting': hitting.entity,
+                                               'hitted': hitted.entity}
+                            server.send(pickle.dumps(damage_response))
+
+            movement_response = {'command': 'movement'}
+            movement_response.update(main_player.entity)
+
+            server.send(pickle.dumps(movement_response))
+            
             screen.fill(BLACK)
             all_sprites.draw(screen)
             pygame.display.flip()
 
     except Exception as e:
-        print('global error:',e)
+        print('global error:', e)
         server.send(pickle.dumps(e))
         traceback.print_exc()
         exit()
+        
 pygame.quit()
