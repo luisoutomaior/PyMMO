@@ -10,7 +10,11 @@ print('Starting up server...')
 s.bind(('127.0.0.1', SERVER_PORT))
 s.listen(5)
 
+ 
 print('Done! Now listening...')
+status = {'working': True, 'players': [], 'enemies': [], 'refresh': True}
+
+n_players = 0
 while True:
     clientsocket, address = s.accept()
     conn_time = time.time()
@@ -18,19 +22,27 @@ while True:
     print('Sending:', message)
     clientsocket.send(pickle.dumps(message))
 
-    while True:
-        now = time.time()
-        message = bytes(f'Connected. Server time: {now}', "utf-8")
-        clientsocket.send(pickle.dumps(message))
-        
-        status = {'working': True}
-        clientsocket.send(pickle.dumps(status))
-        
-        ready_sockets, _, _ = select.select(
-            [clientsocket], [], [], SERVER_TIMEOUT)
+    n_players += 1
+    status['players'].append(n_players)
+    status['enemies'].append(n_players)
+    
 
-        if ready_sockets:
-            data = pickle.loads(clientsocket.recv(1024))
-            print('received:', data)
-        else:
-            pass
+    try:
+        while True:
+            now = time.time()
+            message = bytes(f'Connected. Server time: {now}', "utf-8")
+            clientsocket.send(pickle.dumps(message))
+            
+            clientsocket.send(pickle.dumps(status))
+            
+            ready_sockets, _, _ = select.select(
+                [clientsocket], [], [], SERVER_TIMEOUT)
+
+            if ready_sockets:
+                    data = pickle.loads(clientsocket.recv(1024))
+                    print('received:', data)
+                    
+            else:
+                pass
+    except BaseException as e:
+        print('Server Exception:', e)

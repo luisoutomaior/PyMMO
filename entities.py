@@ -44,8 +44,8 @@ class HealthBar(Entity):
 
 
 class Player(Entity):
-    def __init__(self, color=BLUE, init_pos=(0, 0)):
-        super(Player, self).__init__(name='Player',
+    def __init__(self, name='Player', color=BLUE, init_pos=(0, 0)):
+        super(Player, self).__init__(name=name,
                                      color=color, 
                                      init_pos=init_pos)
 
@@ -105,8 +105,8 @@ class Player(Entity):
 
 
 class Enemy(Entity):
-    def __init__(self, color=YELLOW, init_pos=(0, 0)):
-        super(Enemy, self).__init__(name='Enemy',
+    def __init__(self, name='Enemy', color=YELLOW, init_pos=(0, 0)):
+        super(Enemy, self).__init__(name=name,
                                     color=color, 
                                     init_pos=init_pos)
 

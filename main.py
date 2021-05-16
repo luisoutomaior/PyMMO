@@ -19,18 +19,9 @@ clock = pygame.time.Clock()
 
 
 players = pygame.sprite.Group()
-players.add(Player(color=BLUE))
-
 enemies = pygame.sprite.Group()
-enemies.add(Enemy())
-
 ui = pygame.sprite.Group()
 
-for entity in players:
-    ui.add(HealthBar(entity))
-
-for entity in enemies:
-    ui.add(HealthBar(entity))
 
 all_sprites = pygame.sprite.Group()
 all_sprites.add(players)
@@ -43,8 +34,26 @@ while running:
                                         CLIENT_TIMEOUT)
 
     if ready_sockets:
-        data = pickle.loads(server.recv(1024))
-        print('received:', data)
+        try:
+            data = pickle.loads(server.recv(1024))
+            print('received:', data)
+            
+            if data['refresh']:
+                players.add(Player(name=data['players'][-1], color=BLUE))
+                enemies.add(Enemy(name=data['enemies'][-1]))
+                
+                for entity in players:
+                    ui.add(HealthBar(entity))
+
+                for entity in enemies:
+                    ui.add(HealthBar(entity))
+                    
+                data['refresh'] = False
+            
+            server.sends(pickle.dumps("Refresh complete"))
+        except BaseException as e:
+            print('Client Exception: ',e)
+            pass
     else:
         pass
 
