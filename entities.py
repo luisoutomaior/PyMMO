@@ -3,9 +3,11 @@ from macros import *
 
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, color=GREEN, init_pos=(WIDTH / 2, HEIGHT / 2)):
+    def __init__(self, name="Entity", color=GREEN, init_pos=(WIDTH / 2, HEIGHT / 2)):
+        self.name = name
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.Surface((32, 32))
+        print(color)
         self.image.fill(color)
 
         self.rect = self.image.get_rect()
@@ -17,7 +19,7 @@ class Entity(pygame.sprite.Sprite):
 
 class HealthBar(Entity):
     def __init__(self, entity):
-        pygame.sprite.Sprite.__init__(self)
+        super(HealthBar, self).__init__(name='HealthBar')
         self.entity = entity
         
         self.image = pygame.Surface((32, 4))
@@ -25,28 +27,27 @@ class HealthBar(Entity):
         self.prev_hp = -1
         
     def update(self):
-        hp_percentage = self.entity.stats['hp'] / self.entity.stats['max_hp']
-        # TODO: only update when HP changed
-        
-        if hp_percentage != self.prev_hp:
-            self.prev_hp = hp_percentage
-            healthbar = pygame.Surface((32 * hp_percentage, 4))
-            healthbar.fill(GREEN)
-            self.image.fill(GREY)
-            self.image.blit(healthbar, (0,0))
+        if self.entity.alive():
+            hp_percentage = self.entity.stats['hp'] / self.entity.stats['max_hp']
+            if hp_percentage != self.prev_hp:
+                self.prev_hp = hp_percentage
+                healthbar = pygame.Surface((32 * hp_percentage, 4))
+                healthbar.fill(GREEN)
+                self.image.fill(GREY)
+                self.image.blit(healthbar, (0,0))
 
-        self.rect = self.image.get_rect()
-        self.rect.centerx = self.entity.rect.centerx
-        self.rect.bottom = self.entity.rect.bottom - 38
-        
-        if not self.entity.alive():
+            self.rect = self.image.get_rect()
+            self.rect.centerx = self.entity.rect.centerx
+            self.rect.bottom = self.entity.rect.bottom - 38
+        else:
             self.kill()
-        
 
 
 class Player(Entity):
     def __init__(self, color=BLUE, init_pos=(0, 0)):
-        super(Player, self).__init__(color, init_pos)
+        super(Player, self).__init__(name='Player',
+                                     color=color, 
+                                     init_pos=init_pos)
 
         self.rect.centerx = init_pos[0] + WIDTH / 2
         self.rect.bottom = init_pos[1] + HEIGHT - 10
@@ -105,7 +106,9 @@ class Player(Entity):
 
 class Enemy(Entity):
     def __init__(self, color=YELLOW, init_pos=(0, 0)):
-        super(Enemy, self).__init__(color, init_pos)
+        super(Enemy, self).__init__(name='Enemy',
+                                    color=color, 
+                                    init_pos=init_pos)
 
         self.rect.centerx = init_pos[0] + WIDTH / 2
         self.rect.bottom = init_pos[1] + HEIGHT - 100

@@ -13,6 +13,11 @@ YELLOW = (255, 255, 0)
 
 NORMAL_ATTACK = 0
 
+SERVER_IP = '127.0.0.1'
+SERVER_PORT = 12346
+SERVER_TIMEOUT = 0.1
+CLIENT_TIMEOUT = 0.01
+
 def CALCULATE_DAMAGE(attacker_stats, attacked_stats, kind=NORMAL_ATTACK):
     
     if kind == NORMAL_ATTACK:
