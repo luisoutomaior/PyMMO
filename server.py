@@ -28,18 +28,34 @@ def threaded_client(conn, status):
                 try:
                     response = pickle.loads(conn.recv(1024))
                     if 'commands' in response:
-                        # print('old status:')
-                        # print(status)
-                        # print('response:')
-                        # print(response)
+                        print('old status:')
+                        print(status)
+                        print('received:')
+                        print(response)
                         for command in response['commands']:
                             if 'movement' in command:
                                 command = command['movement']
                                 for player in status['players']:
                                     if player['id'] == command['id']:
                                         player['pos'] = command['pos']
+
+                            if 'speak' in command:
+                                command = command['speak']
+                                for player in status['players']:
+                                    if player['id'] == command['id']:
+                                        player['stats']['text'] = command['stats']['text']
+                                        player['stats']['speaking'] = command['stats']['speaking']
+                                        player['stats']['speaking_time'] = command['stats']['speaking_time']
+
+                                    if player['stats']['speaking_time'] <= 0:
+                                        player['stats']['speaking_time'] = DEFAULT_CHAT_TIME
                                         
-                            elif 'damage' in command:
+                                        if player['stats']['speaking']:
+                                            player['stats']['text'] = ''
+                                            player['stats']['speaking'] = False
+                                        
+                                        
+                            if 'damage' in command:
                                 command = command['damage']
                                 print(response)
                                 
@@ -59,8 +75,8 @@ def threaded_client(conn, status):
                                             if command['hitted']['stats']['alive'] == False:
                                                 status['players'].remove(player)
 
-                        # print('new status:')
-                        # print(status)
+                        print('new status:')
+                        print(status)
                         
                         status_update = True
                         conn.send(pickle.dumps(status))
@@ -75,9 +91,13 @@ def threaded_client(conn, status):
 
 
 n_players = 0
+clients = set()
+
 while True:
     try:
         client, address = s.accept()
+        
+        clients.add(client)
         conn_time = time.time()
         n_players += 1
 
@@ -97,10 +117,17 @@ while True:
             
             
     except KeyboardInterrupt:
-        print('Killing...')
-        print(client)
-        i = client.send(pickle.dumps('kill'))
-        print(i)
+        s.close()
+        # for client in clients:
+        #     print('Killing...')
+        #     print(client)
+        #     while True:
+        #         try:
+        #             i = client.send(pickle.dumps('kill'))
+        #         except:
+        #             break
+                    
+        exit()
         # exit()
         
             

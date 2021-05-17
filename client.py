@@ -1,4 +1,5 @@
 
+from pprint import pprint as print
 import socket
 import pygame
 import select
@@ -7,12 +8,28 @@ from macros import *
 from entities import *
 import pickle
 import traceback
+import argparse
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+
+parser.add_argument('--enemies_only',
+                    action='store_true',
+                    # dest='accumulate',
+                    # action='store_const',
+                    # const=sum,
+                    # default=max,
+                    help='only add enemies')
+
+args = parser.parse_args()
+print(args)
+
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect((SERVER_IP, SERVER_PORT))
-from pprint import pprint as print
 
 
 pygame.init()
+
+font = pygame.font.SysFont('arial',  8)
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Hysteresis")
@@ -34,7 +51,9 @@ while running:
             except:
                 continue
 
-            # print('curr id:', id, 'received:', data)
+            if isinstance(data, str) and data == 'kill':
+                print(data)
+                exit('Killed by server')
 
             if id is None and not isinstance(data, str):
                 print('still needs id')
@@ -55,30 +74,39 @@ while running:
                 ui = pygame.sprite.Group()
                 all_sprites = pygame.sprite.Group()
 
-                for player in data['players']:
-                    # print('id:' + player['id'] + ' vs ' + str(id))
-                    if player['id'] == id:
-                        color = PURPLE
-                    else:
-                        color = BLUE
-                        
-                    # print('color:' + str(color))
-                        
-                    sprite = Player(entity=player,
-                                    color=color)
+                if not args.enemies_only:
+                    for player_entity in data['players']:
+                        if player_entity['id'] == id:
+                            print('player_entity: ')
+                            print(player_entity)
+                            color = PURPLE
+                        else:
+                            color = BLUE
 
-                    ui.add(HealthBar(sprite))
-                    players.add(sprite)
+                        sprite = PlayerSprite(entity=player_entity,
+                                              color=color)
 
-                    if player['id'] == id:
-                        main_player = sprite
-                        main_player.main = True
+                        ui.add(HealthBarSprite(sprite))
+                        ui.add(EntityNameSprite(sprite, font, 'Player'))
                         
 
-                for enemy in data['enemies']:
-                    sprite = Enemy(entity=enemy,
-                                   color=YELLOW)
-                    ui.add(HealthBar(sprite))
+                        if player_entity['id'] == id and player_entity['stats']['speaking'] == 'writing':
+                            ui.add(ChatBubbleSprite(sprite, font, color=GREY))
+                            
+                        if player_entity['stats']['speaking'] == 'ready':
+                            ui.add(ChatBubbleSprite(sprite, font, color=BLACK))
+  
+                        players.add(sprite)
+
+                        if player_entity['id'] == id:
+                            main_player = sprite
+                            main_player.main = True
+
+                for enemy_entity in data['enemies']:
+                    sprite = EnemySprite(entity=enemy_entity,
+                                         color=YELLOW)
+                    ui.add(HealthBarSprite(sprite))
+                    ui.add(EntityNameSprite(sprite, font, 'Enemy'))
                     enemies.add(sprite)
 
                 all_sprites.add(players)
@@ -98,40 +126,49 @@ while running:
 
             all_sprites.update()
 
-            hits = pygame.sprite.groupcollide(players, all_sprites, False, False)
+            hits = pygame.sprite.groupcollide(
+                players, all_sprites, False, False)
 
-            response = {'commands': []}
+            response = {'commands': [], 'id': id}
             if hits:
                 for hitting in hits:
-                    print(hits)
                     if hitting.stats['attacking']:
                         for hitted in hits[hitting]:
                             if hitted is not hitting:
-                                if isinstance(hitted, Enemy):
+                                if isinstance(hitted, EnemySprite):
                                     command = 'damage: player-to-enemy'
-                                elif isinstance(hitted, Player):
+                                elif isinstance(hitted, PlayerSprite):
                                     command = 'damage: player-to-player'
                                 else:
                                     continue
 
                                 damage = CALCULATE_DAMAGE(hitting.stats,
-                                                        hitted.stats,
-                                                        NORMAL_ATTACK)
+                                                          hitted.stats,
+                                                          NORMAL_ATTACK)
                                 new_hp = hitted.stats['hp']
                                 hitted.receive_damage(damage)
-                                
+
                                 damage_command = {'type': command,
-                                                'hitting': hitting.entity,
-                                                'hitted': hitted.entity}
-                                response['commands'].append({'damage': damage_command})
-                                
-                                server.send(pickle.dumps(damage_command))
+                                                  'hitting': hitting.entity,
+                                                  'hitted': hitted.entity}
+                                response['commands'].append(
+                                    {'damage': damage_command})
 
-            if main_player.moving:
-                response['commands'].append({'movement': main_player.entity})
+            if main_player is not None:
+                if main_player.stats['moving']:
+                    response['commands'].append(
+                        {'movement': main_player.entity})
 
-            server.send(pickle.dumps(response))
-            
+                if main_player.stats['speaking']:
+                    print(main_player.stats['speaking'])
+                    response['commands'].append({'speak': main_player.entity})
+                    
+
+            if len(response['commands']):
+                print('sending:')
+                print(response)
+                server.send(pickle.dumps(response))
+
             screen.fill(BLACK)
             all_sprites.draw(screen)
             pygame.display.flip()
@@ -141,5 +178,5 @@ while running:
         server.send(pickle.dumps(e))
         traceback.print_exc()
         exit()
-        
+
 pygame.quit()

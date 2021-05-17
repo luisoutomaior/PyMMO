@@ -1,6 +1,15 @@
 
-WIDTH = 256
-HEIGHT = 256
+SERVER_IP = '127.0.0.1'
+# SERVER_IP = '10.0.0.161'
+SERVER_PORT = 12346
+SERVER_TIMEOUT = 0.001
+CLIENT_TIMEOUT = 0.001
+
+
+DEFAULT_CHAT_TIME = 10000
+
+WIDTH = 256*4
+HEIGHT = 64*4
 FPS = 60
 
 WHITE = (255, 255, 255)
@@ -13,12 +22,6 @@ YELLOW = (255, 255, 0)
 PURPLE = (128, 0, 255)
 
 NORMAL_ATTACK = 0
-
-SERVER_IP = '127.0.0.1'
-# SERVER_IP = '10.0.0.161'
-SERVER_PORT = 12347
-SERVER_TIMEOUT = 0.001
-CLIENT_TIMEOUT = 0.001
 
 
 def CALCULATE_DAMAGE(attacker_stats, attacked_stats, kind=NORMAL_ATTACK):
@@ -40,7 +43,11 @@ def INIT_STATS(**kwargs):
             'defense': 0.3,
             'hp': 100,
             'max_hp': 100,
-            'attacking': False}
+            'attacking': False,
+            'moving': False,
+            'speaking': False,
+            'speaking_time': DEFAULT_CHAT_TIME,
+            'text': ''}
     
     for arg in kwargs:
         stats[arg] = kwargs[arg]
