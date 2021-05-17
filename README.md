@@ -47,7 +47,7 @@ python client.py
 ````
 
 
-Adjust network settings by changing IP and port values in macro.py according to your needs.
+Adjust network settings by changing IP and port values in macros.py according to your needs.
 
 ### In-game commands:
 - **Move** your character via up/right/left/down keyboard arrows. 
