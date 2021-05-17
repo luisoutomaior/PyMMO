@@ -45,9 +45,11 @@ python client.py
 ````
 
 
+Adjust network settings by changing IP and port values in macro.py according to your needs.
+
 ### In-game commands:
 - **Move** your character via up/right/left/down keyboard arrows. 
-- **Attack** an enemy or another player by pressing space. This will damage the entity you are overlapping with, and it can damage both "enemy" and "player" entities. 
+- **Attack** an enemy or another player by pressing space. This will damage the entity you are overlapping with, and it can damage both "enemy" and "player" entities. When HP bar reaches zero, the entity is killed and removed from the server. 
 - **Chat** in-game by pressing any lowercase letter to write text to the in-game chat floatting bubble. Press enter to publish the text bubble you entered to all other players in the scene.
 
 
