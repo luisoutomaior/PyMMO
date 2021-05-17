@@ -6,10 +6,12 @@
 
 
 
-**_PyMMO_** is an attempt at template for a Python-based MMO game built using **_PyGame_** on top of Python's built-in **_socket_** protocol library. This template implements a simple MMORPG with baked in features such as:
-- In-Game Chat bubbles functionality;
-- Action battling with server-side processing functionality;
-- Ability to be run on a cloud server, locally in your machine, or anywhere in-between due to the use of sockets.
+**_PyMMO_** is a Python framework/template of a MMO game built using **_PyGame_** on top of Python's built-in **_socket_** module. This template implements a simple MMORPG with baked in features such as:
+- **In-game chat bubbles** functionality;
+- **Action battle system** with server-side processing functionality;
+- Run on **cloud**, **locally** in your machine, or **anywhere in-between** due to the use of sockets.
+- **Multithreaded client handling** on the server side
+- **Minimal and easy to use** and only requires PyGame as a dependency
 
 ## Preview:
 
