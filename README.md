@@ -1,6 +1,6 @@
 # PyMMO
 
-![pymmo][pymmo.png]
+![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
 
 
 Template for a Python-based MMO game using sockets and PyGame. This template is a simple MMORPG. 
