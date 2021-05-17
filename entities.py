@@ -65,8 +65,8 @@ class HealthBarSprite(EntitySprite):
         super(HealthBarSprite, self).__init__(entity)
         self.entity = entity_sprite
 
-        self.image = pygame.Surface((32, 4))
-        self.image.fill(GREY)
+        self.image = pygame.Surface((32, 6))
+        self.image.fill(DARKGREY)
 
         self.prev_hp = -1
 
@@ -76,10 +76,10 @@ class HealthBarSprite(EntitySprite):
                 self.entity.stats['max_hp']
             if hp_percentage != self.prev_hp:
                 self.prev_hp = hp_percentage
-                healthbar = pygame.Surface((32 * hp_percentage, 4))
+                healthbar = pygame.Surface((30 * hp_percentage, 4))
                 healthbar.fill(GREEN)
-                self.image.fill(GREY)
-                self.image.blit(healthbar, (0, 0))
+                self.image.fill(DARKGREY)
+                self.image.blit(healthbar, (1, 1))
 
             self.rect = self.image.get_rect()
             self.rect.centerx = self.entity.rect.centerx
@@ -94,19 +94,19 @@ class EntityNameSprite(EntitySprite):
         super(EntityNameSprite, self).__init__(entity)
         self.entity = entity_sprite
 
-        self.image = pygame.Surface((32, 10))
-        self.image.fill(GREY)
-
         self.text = font.render(name + entity['id'], False, WHITE)
+        self.image = pygame.Surface((self.text.get_rect().width, 10))
+        self.image.fill(DARKGREY)
+
 
     def update(self):
         if self.entity.entity['stats']['alive'] and self.entity.alive():
-            self.image.fill(GREY)
-            self.image.blit(self.text, (0, 0))
+            self.image.fill(DARKGREY)
+            self.image.blit(self.text, (0,0))
 
             self.rect = self.image.get_rect()
             self.rect.centerx = self.entity.rect.centerx
-            self.rect.bottom = self.entity.rect.bottom - 40
+            self.rect.bottom = self.entity.rect.bottom - 44
         else:
             self.kill()
 
@@ -116,19 +116,22 @@ class ChatBubbleSprite(EntitySprite):
         entity = deepcopy(entity_sprite.entity)
         super(ChatBubbleSprite, self).__init__(entity)
         self.entity = entity_sprite
+        self.color = color
+        
+        text_color = (255 - color[0], 255 - color[1], 255 - color[2])
 
-        self.text = font.render(self.entity.stats['text'], False, WHITE)
-        self.image = pygame.Surface((self.text.get_width(), 10))
+        self.text = font.render(self.entity.stats['text'], False, text_color)
+        self.image = pygame.Surface((self.text.get_width(), 12))
         self.image.fill(color)
 
     def update(self):
         if self.entity.entity['stats']['alive'] and self.entity.alive():
-            self.image.fill(GREY)
+            self.image.fill(self.color)
             self.image.blit(self.text, (0, 0))
 
             self.rect = self.image.get_rect()
             self.rect.centerx = self.entity.rect.centerx
-            self.rect.bottom = self.entity.rect.bottom - 48
+            self.rect.bottom = self.entity.rect.bottom - 56
         else:
             self.kill()
 
@@ -189,20 +192,18 @@ class PlayerSprite(EntitySprite):
                 self.anim_counter -= self.stats['attack_speed']
                 if self.anim_counter <= 0:
                     self.stats['attacking'] = False
-                    
-            
+
             if keystate[pygame.K_RETURN]:
-                print(self.stats['speaking'])
                 if self.stats['speaking'] == 'writing':
                     self.stats['speaking'] = 'ready'
                 print(self.stats['speaking'])
-                
+
             if self.stats['speaking'] == 'ready':
-                self.image.fill(GREY)
+                self.image.fill(DARKGREY)
                 self.speak()
-                
+
                 if self.stats['speaking_time'] > 0:
-                    self.stats['speaking_time'] -= 200
+                    self.stats['speaking_time'] -= 50
 
             else:
                 self.image.fill(self.color)

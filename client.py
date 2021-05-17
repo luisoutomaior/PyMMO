@@ -29,10 +29,10 @@ server.connect((SERVER_IP, SERVER_PORT))
 
 pygame.init()
 
-font = pygame.font.SysFont('arial',  8)
+font = pygame.font.SysFont('arial',  10)
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Hysteresis")
+pygame.display.set_caption("PyMMO")
 clock = pygame.time.Clock()
 
 
@@ -77,8 +77,8 @@ while running:
                 if not args.enemies_only:
                     for player_entity in data['players']:
                         if player_entity['id'] == id:
-                            print('player_entity: ')
-                            print(player_entity)
+                            # print('player_entity: ')
+                            # print(player_entity)
                             color = PURPLE
                         else:
                             color = BLUE
@@ -91,10 +91,10 @@ while running:
                         
 
                         if player_entity['id'] == id and player_entity['stats']['speaking'] == 'writing':
-                            ui.add(ChatBubbleSprite(sprite, font, color=GREY))
+                            ui.add(ChatBubbleSprite(sprite, font, color=DARKGREY))
                             
                         if player_entity['stats']['speaking'] == 'ready':
-                            ui.add(ChatBubbleSprite(sprite, font, color=BLACK))
+                            ui.add(ChatBubbleSprite(sprite, font, color=LIGHTBLACK))
   
                         players.add(sprite)
 
