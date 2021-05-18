@@ -15,7 +15,6 @@
 
 ## Preview:
 
-https://user-images.githubusercontent.com/5900245/118431275-2872ec00-b693-11eb-9fe6-0bde1151463b.mov
 https://user-images.githubusercontent.com/5900245/118594865-51fd4780-b767-11eb-84ff-549c956762ec.mov
 
 
