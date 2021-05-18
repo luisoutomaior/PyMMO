@@ -2,7 +2,8 @@ import socket
 import select
 from macros import *
 import time
-import pickle
+import _pickle as pickle
+
 import traceback
 from _thread import *
 import numpy as np
@@ -38,6 +39,16 @@ def threaded_client(conn, status):
                                 for player in status['players']:
                                     if player['id'] == command['id']:
                                         player['pos'] = command['pos']
+                                        player['dir'] = command['dir']
+                                        
+                            if 'animation' in command:
+                                command = command['animation']
+                                
+                                for player in status['players']:
+                                    if player['id'] == command['id']:
+                                        player['stats']['animating'] = command['stats']['animating']
+                                        player['stats']['foreground_loc'] = command['stats']['foreground_loc']
+                                        player['stats']['foreground_idx'] = command['stats']['foreground_idx']
 
                             if 'speak' in command:
                                 command = command['speak']
@@ -104,8 +115,8 @@ while True:
         print(f'Connection has been established with: {address} at {conn_time}. Welcome :)')
 
         id = str(n_players)
-        status['players'].append({'id': id, 'pos': (WIDTH/2, HEIGHT/2), 'stats': INIT_STATS()})
-        status['enemies'].append({'id': id, 'pos': (np.random.randint(WIDTH), np.random.randint(HEIGHT)), 'stats': INIT_STATS()})
+        status['players'].append({'id': id, 'pos': (WIDTH/2, HEIGHT/2), 'dir': RIGHT, 'stats': INIT_STATS()})
+        # status['enemies'].append({'id': id, 'pos': (np.random.randint(WIDTH), np.random.randint(HEIGHT)), 'stats': INIT_STATS()})
         
         client.send(pickle.dumps(id))
         
@@ -118,16 +129,6 @@ while True:
             
     except KeyboardInterrupt:
         s.close()
-        # for client in clients:
-        #     print('Killing...')
-        #     print(client)
-        #     while True:
-        #         try:
-        #             i = client.send(pickle.dumps('kill'))
-        #         except:
-        #             break
-                    
         exit()
-        # exit()
         
             

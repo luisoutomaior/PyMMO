@@ -31,7 +31,8 @@ pygame.init()
 
 font = pygame.font.SysFont('arial',  10)
 pygame.mixer.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SCALED)
+screen.fill(GREEN)
 pygame.display.set_caption("PyMMO")
 clock = pygame.time.Clock()
 
@@ -116,62 +117,65 @@ while running:
                 print(data)
                 exit('strange result:')
 
-        if all_sprites is None:
-            continue
-        else:
-            clock.tick(FPS)
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+            if all_sprites is None:
+                print('all_sprites is None')
+                continue
+            else:
+                clock.tick(FPS)
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
 
-            all_sprites.update()
+                all_sprites.update()
 
-            hits = pygame.sprite.groupcollide(
-                players, all_sprites, False, False)
+                hits = pygame.sprite.groupcollide(
+                    players, all_sprites, False, False)
 
-            response = {'commands': [], 'id': id}
-            if hits:
-                for hitting in hits:
-                    if hitting.stats['attacking']:
-                        for hitted in hits[hitting]:
-                            if hitted is not hitting:
-                                if isinstance(hitted, EnemySprite):
-                                    command = 'damage: player-to-enemy'
-                                elif isinstance(hitted, PlayerSprite):
-                                    command = 'damage: player-to-player'
-                                else:
-                                    continue
+                response = {'commands': [], 'id': id}
+                if hits:
+                    for hitting in hits:
+                        if hitting.stats['attacking']:
+                            for hitted in hits[hitting]:
+                                if hitted is not hitting:
+                                    if isinstance(hitted, EnemySprite):
+                                        command = 'damage: player-to-enemy'
+                                    elif isinstance(hitted, PlayerSprite):
+                                        command = 'damage: player-to-player'
+                                    else:
+                                        continue
 
-                                damage = CALCULATE_DAMAGE(hitting.stats,
-                                                          hitted.stats,
-                                                          NORMAL_ATTACK)
-                                new_hp = hitted.stats['hp']
-                                hitted.receive_damage(damage)
+                                    damage = CALCULATE_DAMAGE(hitting.stats,
+                                                            hitted.stats,
+                                                            NORMAL_ATTACK)
+                                    new_hp = hitted.stats['hp']
+                                    hitted.receive_damage(damage)
 
-                                damage_command = {'type': command,
-                                                  'hitting': hitting.entity,
-                                                  'hitted': hitted.entity}
-                                response['commands'].append(
-                                    {'damage': damage_command})
+                                    damage_command = {'type': command,
+                                                    'hitting': hitting.entity,
+                                                    'hitted': hitted.entity}
+                                    response['commands'].append(
+                                        {'damage': damage_command})
 
-            if main_player is not None:
-                if main_player.stats['moving']:
-                    response['commands'].append(
-                        {'movement': main_player.entity})
+                if main_player is not None:
+                    if main_player.stats['moving']:
+                        response['commands'].append({'movement': main_player.entity})
 
-                if main_player.stats['speaking']:
-                    print(main_player.stats['speaking'])
-                    response['commands'].append({'speak': main_player.entity})
-                    
+                    if main_player.stats['animating']:
+                        response['commands'].append({'animation': main_player.entity})
 
-            if len(response['commands']):
-                print('sending:')
-                print(response)
-                server.send(pickle.dumps(response))
+                    if main_player.stats['speaking']:
+                        response['commands'].append({'speak': main_player.entity})
+                        
 
-            screen.fill(BLACK)
-            all_sprites.draw(screen)
-            pygame.display.flip()
+                if len(response['commands']):
+                    print('sending:')
+                    print(response)
+                    server.send(pickle.dumps(response))
+
+                screen.fill(BLACK)
+                all_sprites.draw(screen)
+                pygame.display.flip()
+                # input('lol')
 
     except Exception as e:
         print('global error: ' + str(e))

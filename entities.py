@@ -5,6 +5,10 @@ from pprint import pprint as print
 import numpy as np
 
 
+CHAR_STANDING_SPRITESHEET = pygame.image.load('Char Standing.png')
+CHAR_ATTACKING_SPRITESHEET = pygame.image.load('Char Attacking.png')
+
+
 class EntitySprite(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
         pygame.sprite.Sprite.__init__(self)
@@ -14,9 +18,11 @@ class EntitySprite(pygame.sprite.Sprite):
         self.speed = (0, 0)
         self.stats = self.entity['stats']
 
-        self.image = pygame.Surface((32, 32))
+        self.image = pygame.Surface((64, 64))
+
+        self.foreground = None
+
         self.color = color
-        self.image.fill(color)
 
         self.rect = self.image.get_rect()
 
@@ -24,10 +30,7 @@ class EntitySprite(pygame.sprite.Sprite):
         self.rect.centery = self.pos[1]
 
     def update(self):
-        self.image.fill(self.color)
-        self.rect.x = self.entity['pos'][0]
-        self.rect.y = self.entity['pos'][1]
-
+        # Movement
         if self.speed != (0, 0):
             self.stats['moving'] = True
 
@@ -35,9 +38,36 @@ class EntitySprite(pygame.sprite.Sprite):
                        self.entity['pos'][1] + self.speed[1])
 
             self.entity['pos'] = new_pos
-
+            
+            if self.speed[0] > 0:
+                self.entity['dir'] = RIGHT
+            elif self.speed[0] < 0:
+                self.entity['dir'] = LEFT
+            
         else:
             self.stats['moving'] = False
+
+        self.rect.x = self.entity['pos'][0]
+        self.rect.y = self.entity['pos'][1]
+            
+        # Animation
+        if self.foreground is not None:
+            animation = 'attacking' if self.stats['attacking'] else 'default'
+            
+            if self.stats['foreground_idx'] == len(self.stats['foreground_loc'][animation]) - 1:
+                self.stats['foreground_idx'] = 0
+            else:
+                self.stats['foreground_idx'] += 1
+
+            curr_loc = self.stats['foreground_loc'][animation][self.stats['foreground_idx']]
+            
+            self.image.fill(BACKGROUND)
+            self.image.blit(self.foreground[animation], curr_loc)
+            self.image.set_colorkey(BACKGROUND)
+            if self.entity['dir'] != RIGHT:
+                self.image = pygame.transform.flip(self.image, True, False)
+        else:
+            self.image.fill(self.color)
 
     def receive_damage(self, damage):
         hp = self.stats['hp']
@@ -98,11 +128,10 @@ class EntityNameSprite(EntitySprite):
         self.image = pygame.Surface((self.text.get_rect().width, 10))
         self.image.fill(DARKGREY)
 
-
     def update(self):
         if self.entity.entity['stats']['alive'] and self.entity.alive():
             self.image.fill(DARKGREY)
-            self.image.blit(self.text, (0,0))
+            self.image.blit(self.text, (0, 0))
 
             self.rect = self.image.get_rect()
             self.rect.centerx = self.entity.rect.centerx
@@ -117,7 +146,7 @@ class ChatBubbleSprite(EntitySprite):
         super(ChatBubbleSprite, self).__init__(entity)
         self.entity = entity_sprite
         self.color = color
-        
+
         text_color = (255 - color[0], 255 - color[1], 255 - color[2])
 
         self.text = font.render(self.entity.stats['text'], False, text_color)
@@ -154,13 +183,38 @@ class PlayerSprite(EntitySprite):
         super(PlayerSprite, self).__init__(entity=entity,
                                            color=color)
 
+        self.foreground = {'default': CHAR_STANDING_SPRITESHEET,
+                           'attacking': CHAR_ATTACKING_SPRITESHEET}
+        self.stats['foreground_loc'] = {
+            'default': [
+                (0, 0),
+                (0, 0),
+                (0, 0),
+                (0, 0),
+                (0, -64),
+                (0, -64),
+                (0, -64),
+                (0, -64),
+            ],
+            'attacking': [
+                (0, 0),
+                (0, 0),
+                (0, -64),
+                (0, -64),
+                (0, -64*2),
+                (0, -64*2),
+                (0, -64*3),
+                (0, -64*3),
+                (0, -64*4),
+                (0, -64*4),
+            ]}
+
         self.rect.centerx = self.pos[0]
         self.rect.centery = self.pos[1]
         self.speed = (0, 0)
 
-        self.anim_counter = 0
-        self.speak_counter = 300
         self.main = False
+        self.stats['animating'] = True
 
     def update(self):
 
@@ -189,27 +243,19 @@ class PlayerSprite(EntitySprite):
 
             elif self.stats['attacking']:
                 self.image.fill(RED)
-                self.anim_counter -= self.stats['attack_speed']
-                if self.anim_counter <= 0:
-                    self.stats['attacking'] = False
 
             if keystate[pygame.K_RETURN]:
                 if self.stats['speaking'] == 'writing':
                     self.stats['speaking'] = 'ready'
-                print(self.stats['speaking'])
 
             if self.stats['speaking'] == 'ready':
-                self.image.fill(DARKGREY)
+                # self.image.fill(DARKGREY)
                 self.speak()
 
                 if self.stats['speaking_time'] > 0:
                     self.stats['speaking_time'] -= 50
 
-            else:
-                self.image.fill(self.color)
-
         super(PlayerSprite, self).update()
 
     def attack(self):
-        self.anim_counter = 3000
         self.stats['attacking'] = True
