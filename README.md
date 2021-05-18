@@ -62,11 +62,20 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 ## WORK IN PROGRESS! Needs some work (please feel free to contribute!):
 
-- Animated graphics (0%)
-- Network stability (20%)
+
+_(bold tasks are being actively worked on)_
+- **Animated graphics (90%)**
+- **Network stability (20%)**
 - Unit-tests (0%)
 - Animated graphics (0%)
 - Server-side computations (20%)
 
 
 **This was put together in a rush to try to finish within a day or so... Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
+
+
+
+## Work log
+
+- 16 May 2021: Published repository
+- 17 May 2021: Added animated graphics (0% -\> 90%)
