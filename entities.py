@@ -54,7 +54,7 @@ class EntitySprite(pygame.sprite.Sprite):
         if self.foreground is not None:
             animation = 'attacking' if self.stats['attacking'] else 'default'
             
-            if self.stats['foreground_idx'] == len(self.stats['foreground_loc'][animation]) - 1:
+            if self.stats['foreground_idx'] >= len(self.stats['foreground_loc'][animation]) - 1:
                 self.stats['foreground_idx'] = 0
             else:
                 self.stats['foreground_idx'] += 1
