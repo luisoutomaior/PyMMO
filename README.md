@@ -1,5 +1,6 @@
 
 
+
 # PyMMO
 
 ![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
@@ -14,9 +15,7 @@
 - **Minimal and easy to use** and only requires PyGame as a dependency
 
 ## Preview:
-
-https://user-images.githubusercontent.com/5900245/118594865-51fd4780-b767-11eb-84ff-549c956762ec.mov
-
+![pymmo_anim](https://user-images.githubusercontent.com/5900245/118595424-48c0aa80-b768-11eb-874f-af1c4893413f.gif)
 
 ## Requirements
 - PyGame 2.0+
