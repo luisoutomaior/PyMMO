@@ -1,7 +1,5 @@
 
-
-
-# PyMMO
+## Looking for collaborators! Please send me a message on [reddit](https://www.reddit.com/user/PaleontologistIcy652)
 
 ![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
 
@@ -66,8 +64,14 @@ Adjust network settings by changing IP and port values in macros.py according to
 _(bold tasks are being actively worked on)_
 - **Animated graphics (90%)**
 - **Network stability (20%)**
+- **Background graphics (0%)**
+- **Monster/enemy graphics (0%)**
+- **Platforming mechanics (0%)**
+- **RPG stats mechanics (0%)**
+- **RPG skills mechanics (0%)**
+- **RPG items mechanics (0%)**
+- **RPG gear mechanics (0%)**
 - Unit-tests (0%)
-- Animated graphics (0%)
 - Server-side computations (20%)
 
 
