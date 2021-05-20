@@ -8,6 +8,21 @@ import numpy as np
 CHAR_STANDING_SPRITESHEET = pygame.image.load('Char Standing.png')
 CHAR_ATTACKING_SPRITESHEET = pygame.image.load('Char Attacking.png')
 
+GREN_STANDING_SPRITESHEET = pygame.image.load('Gren.png')
+
+
+def spritesheet_grid(size=64, h=4, w=4, max=21):
+    if max < 0:
+        max = h * w - max
+    grid = []
+    for x in range(h):
+        for y in range(w):
+            if len(grid) == 21:
+                break
+            grid.append((-size * y, -size * x))
+
+    return grid
+
 
 class EntitySprite(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
@@ -38,29 +53,29 @@ class EntitySprite(pygame.sprite.Sprite):
                        self.entity['pos'][1] + self.speed[1])
 
             self.entity['pos'] = new_pos
-            
+
             if self.speed[0] > 0:
                 self.entity['dir'] = RIGHT
             elif self.speed[0] < 0:
                 self.entity['dir'] = LEFT
-            
+
         else:
             self.stats['moving'] = False
 
         self.rect.x = self.entity['pos'][0]
         self.rect.y = self.entity['pos'][1]
-            
+
         # Animation
         if self.foreground is not None:
             animation = 'attacking' if self.stats['attacking'] else 'default'
-            
+
             if self.stats['foreground_idx'] >= len(self.stats['foreground_loc'][animation]) - 1:
                 self.stats['foreground_idx'] = 0
             else:
                 self.stats['foreground_idx'] += 1
 
             curr_loc = self.stats['foreground_loc'][animation][self.stats['foreground_idx']]
-            
+
             self.image.fill(BACKGROUND)
             self.image.blit(self.foreground[animation], curr_loc)
             self.image.set_colorkey(BACKGROUND)
@@ -93,7 +108,7 @@ class HealthBarSprite(EntitySprite):
         entity = deepcopy(entity_sprite.entity)
         entity['id'] = str(entity['id']) + '_HealthBar'
         super(HealthBarSprite, self).__init__(entity)
-        self.entity = entity_sprite
+        self.parent_sprite = entity_sprite
 
         self.image = pygame.Surface((32, 6))
         self.image.fill(DARKGREY)
@@ -101,9 +116,9 @@ class HealthBarSprite(EntitySprite):
         self.prev_hp = -1
 
     def update(self):
-        if self.entity.entity['stats']['alive'] and self.entity.alive():
-            hp_percentage = self.entity.stats['hp'] / \
-                self.entity.stats['max_hp']
+        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
+            hp_percentage = self.parent_sprite.stats['hp'] / \
+                self.parent_sprite.stats['max_hp']
             if hp_percentage != self.prev_hp:
                 self.prev_hp = hp_percentage
                 healthbar = pygame.Surface((30 * hp_percentage, 4))
@@ -112,8 +127,8 @@ class HealthBarSprite(EntitySprite):
                 self.image.blit(healthbar, (1, 1))
 
             self.rect = self.image.get_rect()
-            self.rect.centerx = self.entity.rect.centerx
-            self.rect.bottom = self.entity.rect.bottom - 38
+            self.rect.centerx = self.parent_sprite.rect.centerx
+            self.rect.bottom = self.parent_sprite.rect.bottom - 38
         else:
             self.kill()
 
@@ -122,20 +137,20 @@ class EntityNameSprite(EntitySprite):
     def __init__(self, entity_sprite, font, name):
         entity = deepcopy(entity_sprite.entity)
         super(EntityNameSprite, self).__init__(entity)
-        self.entity = entity_sprite
+        self.parent_sprite = entity_sprite
 
         self.text = font.render(name + entity['id'], False, WHITE)
         self.image = pygame.Surface((self.text.get_rect().width, 10))
         self.image.fill(DARKGREY)
 
     def update(self):
-        if self.entity.entity['stats']['alive'] and self.entity.alive():
+        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
             self.image.fill(DARKGREY)
             self.image.blit(self.text, (0, 0))
 
             self.rect = self.image.get_rect()
-            self.rect.centerx = self.entity.rect.centerx
-            self.rect.bottom = self.entity.rect.bottom - 44
+            self.rect.centerx = self.parent_sprite.rect.centerx
+            self.rect.bottom = self.parent_sprite.rect.bottom - 44
         else:
             self.kill()
 
@@ -144,23 +159,24 @@ class ChatBubbleSprite(EntitySprite):
     def __init__(self, entity_sprite, font, color=BLACK):
         entity = deepcopy(entity_sprite.entity)
         super(ChatBubbleSprite, self).__init__(entity)
-        self.entity = entity_sprite
+        self.parent_sprite = entity_sprite
         self.color = color
 
         text_color = (255 - color[0], 255 - color[1], 255 - color[2])
 
-        self.text = font.render(self.entity.stats['text'], False, text_color)
+        self.text = font.render(
+            self.parent_sprite.stats['text'], False, text_color)
         self.image = pygame.Surface((self.text.get_width(), 12))
         self.image.fill(color)
 
     def update(self):
-        if self.entity.entity['stats']['alive'] and self.entity.alive():
+        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
             self.image.fill(self.color)
             self.image.blit(self.text, (0, 0))
 
             self.rect = self.image.get_rect()
-            self.rect.centerx = self.entity.rect.centerx
-            self.rect.bottom = self.entity.rect.bottom - 56
+            self.rect.centerx = self.parent_sprite.rect.centerx
+            self.rect.bottom = self.parent_sprite.rect.bottom - 56
         else:
             self.kill()
 
@@ -170,12 +186,24 @@ class EnemySprite(EntitySprite):
         super(EnemySprite, self).__init__(entity=entity,
                                           color=color)
 
-        self.rect.centerx = self.pos[0]
-        self.rect.bottom = self.pos[1]
-        self.speed = (0, 0)
-
     def update(self):
         super(EnemySprite, self).update()
+
+
+class GrenSprite(EntitySprite):
+    def __init__(self, entity, color=YELLOW, init_pos=(0, 0)):
+        super(GrenSprite, self).__init__(entity=entity,
+                                         color=color)
+
+        self.foreground = {'default': CHAR_ATTACKING_SPRITESHEET}
+        self.stats['foreground_loc'] = {
+            'default': spritesheet_grid(32, 5, 2, -1)
+        }
+
+        self.stats['animating'] = True
+
+    def update(self):
+        super(GrenSprite, self).update()
 
 
 class PlayerSprite(EntitySprite):
@@ -186,32 +214,9 @@ class PlayerSprite(EntitySprite):
         self.foreground = {'default': CHAR_STANDING_SPRITESHEET,
                            'attacking': CHAR_ATTACKING_SPRITESHEET}
         self.stats['foreground_loc'] = {
-            'default': [
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                (0, 0),
-                (0, -64),
-                (0, -64),
-                (0, -64),
-                (0, -64),
-            ],
-            'attacking': [
-                (0, 0),
-                (0, 0),
-                (0, -64),
-                (0, -64),
-                (0, -64*2),
-                (0, -64*2),
-                (0, -64*3),
-                (0, -64*3),
-                (0, -64*4),
-                (0, -64*4),
-            ]}
-
-        self.rect.centerx = self.pos[0]
-        self.rect.centery = self.pos[1]
-        self.speed = (0, 0)
+            'default': spritesheet_grid(64, 5, 5, -4),
+            'attacking': spritesheet_grid(64, 9, 5, -2)
+        }
 
         self.main = False
         self.stats['animating'] = True
@@ -249,7 +254,6 @@ class PlayerSprite(EntitySprite):
                     self.stats['speaking'] = 'ready'
 
             if self.stats['speaking'] == 'ready':
-                # self.image.fill(DARKGREY)
                 self.speak()
 
                 if self.stats['speaking_time'] > 0:
