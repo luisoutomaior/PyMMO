@@ -62,10 +62,10 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 
 _(bold tasks are being actively worked on)_
-- **Animated graphics (91%)**
+- **Animated graphics (95%)**
 - **Network stability (30%)**
+- **Monster/enemy graphics (50%)**
 - **Background graphics (0%)**
-- **Monster/enemy graphics (0%)**
 - **Platforming mechanics (0%)**
 - **RPG stats mechanics (0%)**
 - **RPG skills mechanics (0%)**
