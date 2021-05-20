@@ -7,7 +7,7 @@ import _pickle as pickle
 import traceback
 from _thread import *
 import numpy as np
-from pprint import pprint as print
+from pprint import pprint
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -18,7 +18,7 @@ s.listen(2)
 # Allow timeout to process KeyboardInterrupt
 s.settimeout(1.0)
  
-print('Done! Now listening...')
+print('Done! Now listening...', flush=True)
 status = {'working': True, 'players': [], 'enemies': []}
 
 
@@ -32,9 +32,9 @@ def threaded_client(conn, status):
                     response = pickle.loads(conn.recv(1024))
                     if 'commands' in response:
                         print('old status:')
-                        print(status)
+                        pprint(status)
                         print('received:')
-                        print(response)
+                        pprint(response)
                         for command in response['commands']:
                             if 'movement' in command:
                                 command = command['movement']
@@ -70,7 +70,7 @@ def threaded_client(conn, status):
                                         
                             if 'damage' in command:
                                 command = command['damage']
-                                print(response)
+                                pprint(response)
                                 
                                 if 'to-enemy' in command['type']:
                                     for enemy in status['enemies']:
@@ -89,7 +89,7 @@ def threaded_client(conn, status):
                                                 status['players'].remove(player)
 
                         print('new status:')
-                        print(status)
+                        pprint(status)
                         
                         status_update = True
                         conn.send(pickle.dumps(status))
