@@ -9,16 +9,7 @@ from _thread import *
 import numpy as np
 from pprint import pprint
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-print('Starting up server...')
-s.bind(('127.0.0.1', SERVER_PORT))
-s.listen(2)
-
-# Allow timeout to process KeyboardInterrupt
-s.settimeout(1.0)
- 
-print('Done! Now listening...', flush=True)
 status = {'working': True, 'players': [], 'enemies': []}
 
 
@@ -102,36 +93,51 @@ def threaded_client(conn, status):
             conn.send(pickle.dumps(status))
 
 
+def start_server():
+    n_players = 0
+    clients = set()
 
-n_players = 0
-clients = set()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-while True:
-    try:
-        client, address = s.accept()
-        
-        clients.add(client)
-        conn_time = time.time()
-        n_players += 1
+    print('Starting up server...')
+    s.bind(('127.0.0.1', SERVER_PORT))
+    s.listen(2)
 
-        print(f'Connection has been established with: {address} at {conn_time}. Welcome :)')
+    # Allow timeout to process KeyboardInterrupt
+    s.settimeout(1.0)
 
-        id = str(n_players)
-        status['players'].append({'id': id, 'pos': (WIDTH/2, HEIGHT/2), 'dir': RIGHT, 'stats': INIT_STATS()})
-        # status['enemies'].append({'id': id, 'pos': (np.random.randint(WIDTH), np.random.randint(HEIGHT)), 'stats': INIT_STATS()})
-        
-        client.send(pickle.dumps(id))
-        
+    print('Done! Now listening...', flush=True)
+
+
+    while True:
         try:
-            start_new_thread(threaded_client, (client, status))
-        except BaseException as e:
-            print('Server Exception:', e)
-            traceback.print_exc()
-            
-    except socket.timeout:
-        continue
-    except KeyboardInterrupt:
-        s.close()
-        exit()
-        
-            
+            client, address = s.accept()
+
+            clients.add(client)
+            conn_time = time.time()
+            n_players += 1
+
+            print(f'Connection has been established with: {address} at {conn_time}. Welcome :)')
+
+            id = str(n_players)
+            status['players'].append({'id': id, 'pos': (WIDTH/2, HEIGHT/2), 'dir': RIGHT, 'stats': INIT_STATS()})
+            # status['enemies'].append({'id': id, 'pos': (np.random.randint(WIDTH), np.random.randint(HEIGHT)), 'stats': INIT_STATS()})
+
+            client.send(pickle.dumps(id))
+
+            try:
+                start_new_thread(threaded_client, (client, status))
+            except BaseException as e:
+                print('Server Exception:', e)
+                traceback.print_exc()
+
+        except socket.timeout:
+            continue
+        except KeyboardInterrupt:
+            s.close()
+            exit()
+
+
+# Main Entry Point
+if __name__ == "__main__":
+    start_server()
