@@ -15,6 +15,8 @@ print('Starting up server...')
 s.bind(('127.0.0.1', SERVER_PORT))
 s.listen(2)
 
+# Allow timeout to process KeyboardInterrupt
+s.settimeout(1.0)
  
 print('Done! Now listening...')
 status = {'working': True, 'players': [], 'enemies': []}
@@ -93,8 +95,8 @@ def threaded_client(conn, status):
                         conn.send(pickle.dumps(status))
                         
                 except Exception as e:
-                    
                     traceback.print_exc()
+                    break
         
         if not status_update:
             conn.send(pickle.dumps(status))
@@ -126,7 +128,8 @@ while True:
             print('Server Exception:', e)
             traceback.print_exc()
             
-            
+    except socket.timeout:
+        continue
     except KeyboardInterrupt:
         s.close()
         exit()
