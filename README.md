@@ -1,6 +1,5 @@
 
-
-# PyMMO
+## Looking for collaborators! Please send me a message on [reddit](https://www.reddit.com/user/PaleontologistIcy652)
 
 ![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
 
@@ -14,8 +13,7 @@
 - **Minimal and easy to use** and only requires PyGame as a dependency
 
 ## Preview:
-
-https://user-images.githubusercontent.com/5900245/118431275-2872ec00-b693-11eb-9fe6-0bde1151463b.mov
+![pymmo_anim](https://user-images.githubusercontent.com/5900245/118595424-48c0aa80-b768-11eb-874f-af1c4893413f.gif)
 
 ## Requirements
 - PyGame 2.0+
@@ -64,10 +62,16 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 
 _(bold tasks are being actively worked on)_
-- **Animated graphics (90%)**
-- **Network stability (20%)**
+- **Animated graphics (91%)**
+- **Network stability (30%)**
+- **Background graphics (0%)**
+- **Monster/enemy graphics (0%)**
+- **Platforming mechanics (0%)**
+- **RPG stats mechanics (0%)**
+- **RPG skills mechanics (0%)**
+- **RPG items mechanics (0%)**
+- **RPG gear mechanics (0%)**
 - Unit-tests (0%)
-- Animated graphics (0%)
 - Server-side computations (20%)
 
 
@@ -78,4 +82,5 @@ _(bold tasks are being actively worked on)_
 ## Work log
 
 - 16 May 2021: Published repository
-- 17 May 2021: Added animated graphics (0% -\> 90%)
+- 17 May 2021: Added animated graphics
+- 19 May 2021: Improved animated graphics, added monster sprites (WIP)
