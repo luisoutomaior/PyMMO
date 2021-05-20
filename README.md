@@ -3,6 +3,12 @@
 
 ![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
 
+![Char Standing](https://user-images.githubusercontent.com/5900245/118911593-adecdb00-b8e3-11eb-9f26-97eb1cd588bd.gif)
+![Vermillo ](https://user-images.githubusercontent.com/5900245/118911480-79791f00-b8e3-11eb-9368-9f78bf6982da.gif)
+![Gren](https://user-images.githubusercontent.com/5900245/118911458-72eaa780-b8e3-11eb-8637-09a3df183353.gif)
+![Blurd](https://user-images.githubusercontent.com/5900245/118911479-79791f00-b8e3-11eb-8176-28823c07faab.gif)
+
+
 
 
 **_PyMMO_** is a Python framework/template of a MMO game built using **_PyGame_** on top of Python's built-in **_socket_** module. This template implements a simple MMORPG with baked in features such as:
@@ -57,6 +63,9 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 
 
+![Char Walking](https://user-images.githubusercontent.com/5900245/118911598-b04f3500-b8e3-11eb-80e2-4647694acab2.gif)
+![Char Jumping](https://user-images.githubusercontent.com/5900245/118911803-03c18300-b8e4-11eb-9a54-b05e3f6d0cd0.gif)![Char Attacking](https://user-images.githubusercontent.com/5900245/118911817-09b76400-b8e4-11eb-8d06-c6309fe054e4.gif)
+![Oran](https://user-images.githubusercontent.com/5900245/118911900-2eabd700-b8e4-11eb-9656-cfafc3d6fcf3.gif)
 
 ## WORK IN PROGRESS! Needs some work (please feel free to contribute!):
 
