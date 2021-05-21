@@ -5,21 +5,21 @@ from pprint import pprint as print
 import numpy as np
 
 
-CHAR_STANDING_SPRITESHEET = pygame.image.load('Char Standing.png')
-CHAR_ATTACKING_SPRITESHEET = pygame.image.load('Char Attacking.png')
+CHAR_STANDING_SPRITESHEET = pygame.image.load('sprites/Char Standing.png')
+CHAR_ATTACKING_SPRITESHEET = pygame.image.load('sprites/Char Attacking.png')
 
-GREN_STANDING_SPRITESHEET = pygame.image.load('Gren.png')
+GREN_STANDING_SPRITESHEET = pygame.image.load('sprites/Gren long.png')
 
 
-def spritesheet_grid(size=64, h=4, w=4, max=21):
+def spritesheet_grid(size=64, h=4, w=4, max=21, padding=0):
     if max < 0:
-        max = h * w - max
+        max = h * w - max - 1
     grid = []
     for x in range(h):
         for y in range(w):
             if len(grid) == 21:
                 break
-            grid.append((-size * y, -size * x))
+            grid.append((-size * y + padding, -size * x  + padding))
 
     return grid
 
@@ -28,10 +28,11 @@ class EntitySprite(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
         pygame.sprite.Sprite.__init__(self)
         self.entity = entity
-        self.id = self.entity['id']
-        self.pos = self.entity['pos']
+        self.id = self.entity.id
+        self.pos = self.entity.pos
         self.speed = (0, 0)
-        self.stats = self.entity['stats']
+        self.stats = self.entity.stats
+        print(self.stats)
 
         self.image = pygame.Surface((64, 64))
 
@@ -49,21 +50,21 @@ class EntitySprite(pygame.sprite.Sprite):
         if self.speed != (0, 0):
             self.stats['moving'] = True
 
-            new_pos = (self.entity['pos'][0] + self.speed[0],
-                       self.entity['pos'][1] + self.speed[1])
+            new_pos = (self.entity.pos[0] + self.speed[0],
+                       self.entity.pos[1] + self.speed[1])
 
-            self.entity['pos'] = new_pos
+            self.entity.pos = new_pos
 
             if self.speed[0] > 0:
-                self.entity['dir'] = RIGHT
+                self.entity.dir = RIGHT
             elif self.speed[0] < 0:
-                self.entity['dir'] = LEFT
+                self.entity.dir = LEFT
 
         else:
             self.stats['moving'] = False
 
-        self.rect.x = self.entity['pos'][0]
-        self.rect.y = self.entity['pos'][1]
+        self.rect.x = self.entity.pos[0]
+        self.rect.y = self.entity.pos[1]
 
         # Animation
         if self.foreground is not None:
@@ -76,10 +77,10 @@ class EntitySprite(pygame.sprite.Sprite):
 
             curr_loc = self.stats['foreground_loc'][animation][self.stats['foreground_idx']]
 
-            self.image.fill(BACKGROUND)
+            self.image.fill(self.color)
             self.image.blit(self.foreground[animation], curr_loc)
             self.image.set_colorkey(BACKGROUND)
-            if self.entity['dir'] != RIGHT:
+            if self.entity.dir != RIGHT:
                 self.image = pygame.transform.flip(self.image, True, False)
         else:
             self.image.fill(self.color)
@@ -88,7 +89,7 @@ class EntitySprite(pygame.sprite.Sprite):
         hp = self.stats['hp']
         self.stats['hp'] = hp - damage
         new_hp = self.stats['hp']
-        id = self.entity['id']
+        id = self.entity.id
         print(f'{id} got {damage} of damage. current hp: {hp}. new hp: {new_hp}')
 
         if self.stats['hp'] <= 0:
@@ -96,7 +97,7 @@ class EntitySprite(pygame.sprite.Sprite):
             self.die()
 
     def die(self):
-        print(str(self.entity['id']) + ' is DEAD')
+        print(str(self.entity.id) + ' is DEAD')
         self.kill()
 
     def speak(self):
@@ -106,7 +107,7 @@ class EntitySprite(pygame.sprite.Sprite):
 class HealthBarSprite(EntitySprite):
     def __init__(self, entity_sprite):
         entity = deepcopy(entity_sprite.entity)
-        entity['id'] = str(entity['id']) + '_HealthBar'
+        entity.id = str(entity.id) + '_HealthBar'
         super(HealthBarSprite, self).__init__(entity)
         self.parent_sprite = entity_sprite
 
@@ -116,7 +117,7 @@ class HealthBarSprite(EntitySprite):
         self.prev_hp = -1
 
     def update(self):
-        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
+        if self.parent_sprite.entity.stats['alive'] and self.parent_sprite.alive():
             hp_percentage = self.parent_sprite.stats['hp'] / \
                 self.parent_sprite.stats['max_hp']
             if hp_percentage != self.prev_hp:
@@ -139,12 +140,12 @@ class EntityNameSprite(EntitySprite):
         super(EntityNameSprite, self).__init__(entity)
         self.parent_sprite = entity_sprite
 
-        self.text = font.render(name + entity['id'], False, WHITE)
+        self.text = font.render(name + entity.id, False, WHITE)
         self.image = pygame.Surface((self.text.get_rect().width, 10))
         self.image.fill(DARKGREY)
 
     def update(self):
-        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
+        if self.parent_sprite.entity.stats['alive'] and self.parent_sprite.alive():
             self.image.fill(DARKGREY)
             self.image.blit(self.text, (0, 0))
 
@@ -170,7 +171,7 @@ class ChatBubbleSprite(EntitySprite):
         self.image.fill(color)
 
     def update(self):
-        if self.parent_sprite.entity['stats']['alive'] and self.parent_sprite.alive():
+        if self.parent_sprite.entity.stats['alive'] and self.parent_sprite.alive():
             self.image.fill(self.color)
             self.image.blit(self.text, (0, 0))
 
@@ -195,12 +196,16 @@ class GrenSprite(EntitySprite):
         super(GrenSprite, self).__init__(entity=entity,
                                          color=color)
 
-        self.foreground = {'default': CHAR_ATTACKING_SPRITESHEET}
+        self.foreground = {'default': GREN_STANDING_SPRITESHEET}
         self.stats['foreground_loc'] = {
-            'default': spritesheet_grid(32, 5, 2, -1)
+            'default':  spritesheet_grid(64, 5, 1, -1, 4)
+                        ,
+            
         }
 
         self.stats['animating'] = True
+        self.image = pygame.Surface((64, 64))
+        
 
     def update(self):
         super(GrenSprite, self).update()
@@ -220,6 +225,7 @@ class PlayerSprite(EntitySprite):
 
         self.main = False
         self.stats['animating'] = True
+        
 
     def update(self):
 

@@ -1,6 +1,6 @@
 
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 12345
+SERVER_PORT = 12346
 SERVER_TIMEOUT = 1
 CLIENT_TIMEOUT = 1
 
@@ -59,3 +59,42 @@ def INIT_STATS(**kwargs):
         stats[arg] = kwargs[arg]
         
     return stats
+
+
+class Entity:
+    def __init__(self, id, kind, pos, dir=RIGHT, stats=INIT_STATS(), sprite_name=None):
+        self.id = id
+        self.kind = kind
+        self.pos = pos
+        self.dir = dir
+        self.stats = stats
+        self.sprite_name = sprite_name
+        
+    def update_position(self, entity):
+        self.pos = entity.pos
+        self.dir = entity.dir
+
+    def update_animation(self, entity):
+        self.stats['animating'] = entity.stats['animating']
+        self.stats['foreground_loc'] = entity.stats['foreground_loc']
+        self.stats['foreground_idx'] = entity.stats['foreground_idx']
+        
+    def update_speech(self, entity):
+        self.stats['text'] = entity.stats['text']
+        self.stats['speaking'] = entity.stats['speaking']
+        self.stats['speaking_time'] = entity.stats['speaking_time']
+
+        if self.stats['speaking_time'] <= 0:
+            self.stats['speaking_time'] = DEFAULT_CHAT_TIME
+
+        if self.stats['speaking']:
+            self.stats['text'] = ''
+            self.stats['speaking'] = False
+            
+    def update_stats(self, entity):
+        self.stats['hp'] = entity.stats['hp']
+        
+
+    def __repr__(self):
+        from pprint import pformat
+        return 'Entity\n' + pformat(vars(self), indent=4, width=1)

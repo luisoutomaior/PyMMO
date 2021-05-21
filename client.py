@@ -50,9 +50,8 @@ while running:
         if ready_sockets:
             try:
                 data = pickle.loads(server.recv(PACKET_SIZE))
-                print('DATA')
             except Exception as e:
-                print(e)
+                traceback.print_exc()
                 continue
             if isinstance(data, str) and data == 'kill':
                 print(data)
@@ -74,51 +73,58 @@ while running:
             elif id is not None and isinstance(data, dict):
                 entities = pygame.sprite.Group()
                 enemies = pygame.sprite.Group()
+                backgrounds = pygame.sprite.Group()
+                foregrounds = pygame.sprite.Group()
                 players = pygame.sprite.Group()
                 ui = pygame.sprite.Group()
                 all_sprites = pygame.sprite.Group()
 
-                if not args.enemies_only:
-                    for player_entity in data['players']:
-                        if player_entity['id'] == id:
-                            color = PURPLE
-                        else:
-                            color = BLUE
+                for entity in data['entities']:
+                    if entity.kind == 'player' and entity.id == id:
+                        sprite = PlayerSprite(entity=entity,
+                                            color=PURPLE)
+                    elif entity.kind == 'player':
+                        sprite = PlayerSprite(entity=entity,
+                                            color=BLUE)
+                    elif entity.kind == 'enemy-gren':
+                        sprite = GrenSprite(entity=entity,
+                                        color=GREEN)
+                    else:
+                        sprite = EnemySprite(entity=entity,
+                                            color=YELLOW)
 
-                        sprite = PlayerSprite(entity=player_entity,
-                                              color=color)
-
-                        ui.add(HealthBarSprite(sprite))
-                        ui.add(EntityNameSprite(sprite, font, 'Player'))
+                    ui.add(HealthBarSprite(sprite))
+                    
+                    if entity.id == id and entity.stats['speaking'] == 'writing':
+                        ui.add(ChatBubbleSprite(sprite, font, color=DARKGREY))
                         
+                    if entity.stats['speaking'] == 'ready':
+                        ui.add(ChatBubbleSprite(sprite, font, color=LIGHTBLACK))
 
-                        if player_entity['id'] == id and player_entity['stats']['speaking'] == 'writing':
-                            ui.add(ChatBubbleSprite(sprite, font, color=DARKGREY))
-                            
-                        if player_entity['stats']['speaking'] == 'ready':
-                            ui.add(ChatBubbleSprite(sprite, font, color=LIGHTBLACK))
-  
+                    if 'player' in entity.kind:
                         players.add(sprite)
-
-                        if player_entity['id'] == id:
+                        if entity.id == id:
                             main_player = sprite
                             main_player.main = True
-
-                for enemy_entity in data['enemies']:
-                    
-                    if enemy_entity['kind'] == 'gren':
-                        sprite = GrenSprite(entity=enemy_entity,
-                                            color=GREEN)
-                    else:
-                        sprite = EnemySprite(entity=enemy_entity,
-                                            color=YELLOW)
+                        ui.add(EntityNameSprite(sprite, font, 'Player'))
                         
-                    ui.add(HealthBarSprite(sprite))
-                    ui.add(EntityNameSprite(sprite, font, 'Enemy'))
-                    enemies.add(sprite)
+                    elif 'enemy' in entity.kind:
+                        enemies.add(sprite)
+                        ui.add(EntityNameSprite(sprite, font, 'Enemy'))
+                    
+                    elif 'ui' in entity.kind:
+                        ui.add(sprite)
+                    
+                    elif 'background' in entity.kind:
+                        backgrounds.add(sprite)
+                    
+                    elif 'foreground' in entity.kind:
+                        foregrounds.add(sprite)
 
                 entities.add(players)
                 entities.add(enemies)
+                entities.add(backgrounds)
+                entities.add(foregrounds)
                 all_sprites.add(entities)
                 all_sprites.add(ui)
             else:
@@ -136,9 +142,10 @@ while running:
 
                 all_sprites.update()
 
-                hits = pygame.sprite.groupcollide(players, entities, False, False)
 
                 response = {'commands': [], 'id': id}
+                
+                hits = pygame.sprite.groupcollide(players, entities, False, False)
                 if hits:
                     for hitting in hits:
                         if hitting.stats['attacking']:
@@ -152,8 +159,8 @@ while running:
                                         print('lol?')
                                         continue
 
-                                    damage = CALCULATE_DAMAGE(hitting.stats,
-                                                            hitted.stats,
+                                    damage = CALCULATE_DAMAGE(hitting.entity,
+                                                            hitted.entity,
                                                             NORMAL_ATTACK)
                                     new_hp = hitted.stats['hp']
                                     hitted.receive_damage(damage)
@@ -164,18 +171,18 @@ while running:
                                     response['commands'].append(
                                         {'damage': damage_command})
 
-                if args.enemies_only:
-                    for enemy in enemies:
-                        if enemy.stats['moving']:
-                            response['commands'].append({'movement': enemy.entity})
+                for enemy in enemies:
+                    if enemy.stats['moving']:
+                        response['commands'].append({'movement': enemy.entity})
+            
+                    if enemy.stats['animating']:
+                        print('animating..........')
+                        response['commands'].append({'animation': enemy.entity})
+            
+                    if enemy.stats['speaking']:
+                        response['commands'].append({'speak': enemy.entity})
                 
-                        if enemy.stats['animating']:
-                            response['commands'].append({'animation': enemy.entity})
-                
-                        if enemy.stats['speaking']:
-                            response['commands'].append({'speak': enemy.entity})
-                
-                elif main_player is not None:
+                if main_player is not None:
                     
                     if main_player.stats['moving']:
                         response['commands'].append({'movement': main_player.entity})
