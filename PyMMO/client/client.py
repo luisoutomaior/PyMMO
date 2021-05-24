@@ -59,7 +59,7 @@ class Client:
         SEND_MESSAGE(self.socket, KILL)
         self.socket.close()
 
-    def run(self):
+    def run(self, game):
         """Runs world on client side, including handling of kill commands, and 
         running the game's main loop.
         """
@@ -75,7 +75,7 @@ class Client:
                     LOG.info(
                         'Received world message from server. Running main loop:')
                     received_message.name = 'HELLO-'+str(self.id)
-                    self.world.main_loop(received_message)
+                    self.world.main_loop(received_message, game)
 
         else:
             LOG.exception('Client lost validity!')

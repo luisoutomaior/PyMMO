@@ -4,7 +4,7 @@ from copy import deepcopy
 from pprint import pprint as print
 import numpy as np
 
-ASSETS_PATH = 'assets/'
+
 
 CHAR_STANDING_SPRITESHEET = pygame.image.load(ASSETS_PATH + 'Char Standing.png')
 CHAR_ATTACKING_SPRITESHEET = pygame.image.load(ASSETS_PATH + 'Char Attacking.png')

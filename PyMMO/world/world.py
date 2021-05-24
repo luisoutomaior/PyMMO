@@ -10,7 +10,7 @@ class World:
         
     def update(self, message):
         if NEW_PLAYER_ENTITY in message:
-            self.add_entity({'id': 'player-' + message[NEW_PLAYER_ENTITY]})
+            self.add_entity({'id': 'player-' + str(message[NEW_PLAYER_ENTITY])})
             
         elif KILL_PLAYER_ENTITY in message:
             self.kill_entity(message[KILL_PLAYER_ENTITY])

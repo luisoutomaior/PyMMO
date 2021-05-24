@@ -1,4 +1,6 @@
 
+ASSETS_PATH = 'PyMMO/examples/rpg_platformer/assets/'
+
 DEFAULT_CHAT_TIME = 5000
 
 WIDTH = 64*4

@@ -1,29 +1,40 @@
-from PyMMO.helpers import SERVER_PORT
-from PyMMO import Server, Client
+from PyMMO import Server, Client, World
 import time
 
-def main_loop(world):
-    # Do something to world
-    time.sleep(1)
-    print(world)
-    return world
+class HelloWorld(World):
+    def __init__(self, name='HelloWorld'):
+        super().__init__(name=name)
+        
+        self.prev_time = time.time()
+        
+    def main_loop(self, new_world):
+        print(f'{self} time difference: {time.time() - self.prev_time} seconds')
+        
+        time.sleep(1)
+        print(f'Got new world: {new_world}')
+        
+        self.prev_time = time.time()
+        return new_world
+        
 
 if __name__ == '__main__':
     try:
         client = Client()
         client.connect()
-        
-        client.run_game_loop(main_loop)
+        client.run()
 
     except KeyboardInterrupt:
         client.disconnect()
         exit('Client killed manually.')
 
-    except BaseException as e:
-        print(e)
+    except ConnectionRefusedError:
         # input('No existing servers found. Press any button to start a new server.')
-        server = Server()
-        server.start()
-
+        try:
+            server = Server()
+            server.init_world(HelloWorld)
+            server.start()
+            
+        except KeyboardInterrupt:
+            server.stop()
+            exit('Server killed manually.')
           
-    server.stop()
