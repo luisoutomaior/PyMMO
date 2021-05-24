@@ -20,7 +20,8 @@ LOG = logging.getLogger("rich")
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 12345
 # TIMEOUT = 1/60 # time in seconds
-TIMEOUT = 0.001 # time in seconds
+# TIMEOUT = 0.001 # time in seconds
+TIMEOUT = 1 # time in seconds
 # BUFFER = 1024 # size in bytes
 BUFFER = 1024*4 # size in bytes
 
@@ -28,8 +29,9 @@ BUFFER = 1024*4 # size in bytes
 INIT = 'INIT'
 KILL = 'KILL'
 RUN = 'RUN'
+
 NEW_ENTITY = 'NEW_ENTITY'
- 
+KILL_ENTITY = 'KILL_ENTITY' 
 
 def scramble(message):
     return message # TODO: Message scrambling
@@ -54,5 +56,3 @@ def RECEIVE_MESSAGE(from_socket):
     message = decode(from_socket.recv(BUFFER))
     LOG.info(f'>>> received: {message}')
     return message
-
-

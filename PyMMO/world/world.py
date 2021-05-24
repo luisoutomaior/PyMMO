@@ -1,4 +1,4 @@
-from ..helpers import NEW_ENTITY, LOG
+from ..helpers import NEW_ENTITY, KILL_ENTITY, LOG
 from ..entity.entity import Entity
 from random import random
 
@@ -6,12 +6,15 @@ from random import random
 class World:
     def __init__(self, name='Default World'):
         self.name = name
-        self.entities = []
+        self.entities = {}
         
     def update(self, message):
-        if message == NEW_ENTITY:
-            name = self.random_name()
-            self.add_entity({'name': f'entity_{name}'})
+        if NEW_ENTITY in message:
+            self.add_entity({'id': message[NEW_ENTITY]})
+            
+        elif KILL_ENTITY in message:
+            self.kill_entity(message[KILL_ENTITY])
+            
         return self
     
     def random_name(self):
@@ -20,8 +23,12 @@ class World:
     
     def add_entity(self, entity_spec: dict):
         entity = Entity(entity_spec)
-        self.entities.append(entity)
+        self.entities[entity.id] = entity
         return self.entities
+    
+    def kill_entity(self, id):
+        self.entities.pop(id)
+    
 
     def main_loop(self, new_world):
         ########################

@@ -1,4 +1,4 @@
-from ..helpers import NEW_ENTITY, SERVER_IP, SERVER_PORT, TIMEOUT, INIT, KILL, RUN, LOG, SEND_MESSAGE, RECEIVE_MESSAGE
+from ..helpers import KILL_ENTITY, NEW_ENTITY, SERVER_IP, SERVER_PORT, TIMEOUT, INIT, KILL, RUN, LOG, SEND_MESSAGE, RECEIVE_MESSAGE
 from ..client import Client
 from ..world import World
 from _thread import start_new_thread
@@ -7,13 +7,14 @@ import select
 from threading import active_count
 import time
 
+
 def client_exception_handler(function):
     """Decorator for handling client exceptions
 
     Args:
         function: Server method
     """
-    
+
     def wrapper(self, client):
         def kill_client():
             client.valid = False
@@ -33,24 +34,31 @@ def client_exception_handler(function):
             LOG.error('client_handler exception!')
             LOG.exception(e)
             kill_client()
-            
+
     return wrapper
 
 
 class Server:
-    def __init__(self, ip=SERVER_IP, port=SERVER_PORT):
+    """Server class that implements handling new clients, 
+    communication of World between server and client, etc.
+    """
+
+    def __init__(self, world=World, ip=SERVER_IP, port=SERVER_PORT):
         self.socket = None
         self.ip = ip
         self.port = port
-
+        self.world = world
         self.clients = set()
-
-        self.world = None
 
     def __str__(self):
         return str(f"PyMMO Server @ {self.ip}:{self.port}")
 
     def init_world(self, world_class=World):
+        """Initialize the server-side World instance
+
+        Args:
+            world_class (World, optional): World class to intialize the server with. Defaults to World.
+        """
         self.world = world_class()
 
     def start(self, retry=False):
@@ -70,7 +78,7 @@ class Server:
             new_client = Client(len(self.clients) + 1, client_socket)
 
             start_new_thread(self.add_client, (new_client,))
-            
+
     def server_maintainer(self):
         """Searches for issues in clients and removes them accordingly
         """
@@ -81,23 +89,24 @@ class Server:
                 clients_to_remove = []
                 for client in self.clients:
                     if 'socket.socket [closed]' in str(client.socket):
-                        LOG.error(f'{client.id} socket is closed. Removing from server...')
+                        LOG.error(
+                            f'{client.id} socket is closed. Removing from server...')
                         clients_to_remove.append(client)
-                
+
                 for client_to_be_removed in clients_to_remove:
                     self.remove_client(client_to_be_removed)
-                    
-                    
-                print((time.time() - init_time), active_count(), len(self.clients))
+
+                print((time.time() - init_time),
+                      active_count(), len(self.clients))
             except BaseException as e:
                 LOG.exception(e)
-                
+
     def stop(self):
         """Stops server and removes all clients
-        
+
         """
         for client in self.clients:
-                self.remove_client(client)
+            self.remove_client(client)
 
         self.socket.close()
         LOG.info('Server Manually Disconnected.')
@@ -118,7 +127,7 @@ class Server:
 
         while client.valid:
             self.update_client(client)
-        
+
     def remove_client(self, client, reason=None):
         """Removes client from server
 
@@ -127,9 +136,11 @@ class Server:
         """
         try:
             self.clients.remove(client)
-            LOG.error(f'Client removed from server (reason: {reason}): {client}')
+            LOG.error(
+                f'Client removed from server (reason: {reason}): {client}')
             client.valid = False
             client.disconnect()
+            self.update_world({KILL_ENTITY: client.id})
         except:
             LOG.exception(f'Found issue while removing: {client}')
 
@@ -149,9 +160,8 @@ class Server:
                 client.valid = True
                 LOG.info('Connection validated. Confirming...')
                 SEND_MESSAGE(client.socket, RUN)
-                self.update_world(NEW_ENTITY)
+                self.update_world({NEW_ENTITY: client.id})
                 SEND_MESSAGE(client.socket, self.world)
-
 
     @client_exception_handler
     def update_client(self, client):
@@ -173,10 +183,10 @@ class Server:
                 LOG.info(f'Received update from client {client})')
                 self.update_world(received_message)
 
-                LOG.info(f'Sending latest world to client {client}.')
-                SEND_MESSAGE(client.socket, self.world)
-                LOG.info('Sent latest world to client.')
-            
+        LOG.info(f'Sending latest world to client {client}.')
+        SEND_MESSAGE(client.socket, self.world)
+        LOG.info('Sent latest world to client.')
+
     def update_world(self, message):
         """Updates server-wide World according to message
 
