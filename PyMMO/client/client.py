@@ -20,7 +20,7 @@ class Client:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.server_ip, self.server_port))
 
-        LOG.info('Connected. Requesting entrance...')
+        LOG.info('SUCCESS. Now connected to server. Requesting entrance...')
         SEND_MESSAGE(self.socket, INIT)
 
         while not self.valid:
@@ -32,7 +32,7 @@ class Client:
                 if received_message == RUN:
                     self.valid = True
                     LOG.info(
-                        f'Success. Entered server {self.server_port} @ {self.server_ip} .')
+                        f'SUCCESS. Entered server {self.server_ip}:{self.server_port} .')
                     received_world = RECEIVE_MESSAGE(self.socket)
                     self.world = received_world
                     
@@ -59,6 +59,8 @@ class Client:
                     SEND_MESSAGE(self.socket, KILL)
                     
                 else:
+                    LOG.info('Received world message from server. Running main loop:')
+                    received_message.name = 'HELLO-'+str(self.id)
                     self.world.main_loop(received_message)
                     
         else:

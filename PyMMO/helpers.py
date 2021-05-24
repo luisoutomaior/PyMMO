@@ -7,6 +7,7 @@ import logging
 from rich.logging import RichHandler
 
 logging.basicConfig(
+    # level="ERROR",
     level="NOTSET",
     format="%(message)s",
     datefmt="[%X]",
@@ -17,7 +18,7 @@ LOG = logging.getLogger("rich")
 
 # Networking config
 SERVER_IP = '127.0.0.1'
-SERVER_PORT = 12346
+SERVER_PORT = 12345
 # TIMEOUT = 1/60 # time in seconds
 TIMEOUT = 0.001 # time in seconds
 # BUFFER = 1024 # size in bytes

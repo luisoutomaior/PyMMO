@@ -4,34 +4,31 @@ from ..world import World
 from _thread import start_new_thread
 import socket
 import select
-
+from threading import active_count
+import time
 
 def client_handler(function):
-    def wrapper(_, client):
+    def wrapper(self, client):
+        def kill_client():
+            client.valid = False
+            client.disconnect()
+            self.clients.pop(client)
         try:
-            function(_, client)
+            function(self, client)
         except socket.timeout:
             LOG.exception('Connection timeout.')
-            client.valid = False
-            client.socket.close()
+            kill_client()
 
-        except KeyboardInterrupt:
-            client.valid = False
-            client.disconnect()
-            del client
-            exit('Disconnected. Bye!')
-
-        except ConnectionResetError:
-            client.valid = False
-            client.disconnect()
-            del client
+        except (KeyboardInterrupt, ConnectionResetError, OSError, ValueError) as e:
+            LOG.exception(e)
+            kill_client()
             exit('Disconnected. Bye!')
 
         except BaseException as e:
             LOG.error('client_handler exception!')
             LOG.exception(e)
-            client.valid = False
-            client.socket.close()
+            kill_client()
+            
     return wrapper
 
 
@@ -51,12 +48,13 @@ class Server:
     def init_world(self, world_class=World):
         self.world = world_class()
 
-    def start(self):
+    def start(self, retry=False):
         LOG.info(f'Starting up {self} ...')
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.ip, self.port))
         self.socket.listen()
 
+        start_new_thread(self.client_killer, (time.time(),))
         LOG.info('Server running! Waiting for clients...')
         while True:
             LOG.info(
@@ -67,10 +65,30 @@ class Server:
             new_client = Client(len(self.clients) + 1, client_socket)
 
             start_new_thread(self.add_client, (new_client,))
+            
+    def client_killer(self, init_time):
+        while True:
+            time.sleep(1)
+            clients_to_remove = []
+            for client in self.clients:
+                if 'socket.socket [closed]' in str(client.socket):
+                    LOG.error(f'{client.id} socket is closed. Removing from server...')
+                    clients_to_remove.append(client)
+            
+            for client_to_be_removed in clients_to_remove:
+                self.clients.remove(client_to_be_removed)
+                LOG.error(f'{client_to_be_removed.id} removed from server.')
+                
+                
+                
+            print((time.time() - init_time), active_count(), len(self.clients))
 
     def stop(self):
         for client in self.clients:
-            client.disconnect()
+            try:
+                client.disconnect()
+            except:
+                LOG.exception(f'Found issue with: {client}')
 
         self.socket.close()
         LOG.info('Server Manually Disconnected.')
@@ -107,7 +125,6 @@ class Server:
 
     @client_handler
     def update_client(self, client):
-        wait = False
         ready_sockets, _, _ = select.select([client.socket], [], [],
                                             TIMEOUT)
 
@@ -124,11 +141,9 @@ class Server:
                     f'Received update from client {client}: {received_message}')
                 self.update_world(received_message)
 
-        elif client.world != self.world:
-            LOG.info(f'Sending latest world to client {client}.')
-            SEND_MESSAGE(client.socket, self.world)
-            LOG.info('Sent latest world to client.')
-            wait = True
+                LOG.info(f'Sending latest world to client {client}.')
+                SEND_MESSAGE(client.socket, self.world)
+                LOG.info('Sent latest world to client.')
             
     def update_world(self, message):
         LOG.info('Updating server world...')

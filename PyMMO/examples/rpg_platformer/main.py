@@ -13,12 +13,13 @@ class HelloWorld(World):
         # Do something to world
         # e.g. create new entities, add/change sprites, calculate stuff, etc
         time.sleep(0.001)
-        print(f'Hello world! {new_world}')
+        # print(f'Hello world! {new_world}')
         
         # whatever you return will persist in the server
         # and will be consistent across all clients
         ########################
-        print('time difference:', time.time() - self.prev_time, 'seconds')
+        print(f'{self} time difference: {time.time() - self.prev_time} seconds')
+        input('Press any key to update world...')
         self.prev_time = time.time()
         return new_world
         
@@ -49,8 +50,8 @@ if __name__ == '__main__':
             server = Server()
             server.init_world(HelloWorld)
             server.start()
+            
         except KeyboardInterrupt:
-            client.disconnect()
+            server.stop()
             exit('Server killed manually.')
           
-    server.stop()
