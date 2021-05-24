@@ -62,17 +62,23 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 
 _(bold tasks are being actively worked on)_
-- **Animated graphics (90%)**
-- **Network stability (70%)**
-- **Unit-tests (10%)**
-- **Background graphics (0%)**
-- **Monster/enemy graphics (0%)**
-- **Platforming mechanics (0%)**
-- **RPG stats mechanics (0%)**
-- **RPG skills mechanics (0%)**
-- **RPG items mechanics (0%)**
-- **RPG gear mechanics (0%)**
 
+PyMMO
+- **Network stability (90%)**
+- **Graphical stability (10%)**
+- **Entities e.g. player, enemies, etc. (90%)**
+- **Actions e.g. attack, move, etc (90%)**
+- Unit-testing (0%)
+
+Examples: Platformer MMORPG
+- Foreground graphics e.g. floor, tilemap, etc. (10%)
+- Background graphics e.g. scrolling/parallax background (0%)
+- Camera movement (0%)
+- Platforming mechanics (10%)
+- RPG stats mechanics (10%)
+- RPG skills mechanics (0%)
+- RPG items mechanics (0%)
+- RPG gear mechanics (0%)
 
 **This was put together in a rush to try to finish within a day or so... Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
 
@@ -81,6 +87,8 @@ _(bold tasks are being actively worked on)_
 ## Work log
 
 - 16 May 2021: Published repository
-- 17 May 2021: Added animated graphics (0% -\> 90%)
-- 21 May 2021: OOP overhaul for unit-testing (0% -\> 10%)
-- 23 May 2021: Server-client communication overhaul. Working with 100+ clients. (0% -\> 70%)
+- 17 May 2021: Added animated graphics __(0% -\> 90%)__
+- 21 May 2021: OOP overhaul for unit-testing __(0% -\> 10%)__
+- 23 May 2021: Server-client communication overhaul. __(0% -\> 70%)__
+- 24 May 2021: More network (back-end) stability improvements. Tested and working well with 100+ clients. __(70% -\> 90%)__
+- 24 May 2021: Start working on graphical (front-end) stability. __(0% -\> 10%)__

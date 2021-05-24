@@ -1,4 +1,4 @@
-from ..helpers import KILL_ENTITY, NEW_ENTITY, SERVER_IP, SERVER_PORT, TIMEOUT, INIT, KILL, RUN, LOG, SEND_MESSAGE, RECEIVE_MESSAGE
+from ..helpers import KILL_PLAYER_ENTITY, NEW_PLAYER_ENTITY, SERVER_IP, SERVER_PORT, TIMEOUT, INIT, KILL, RUN, LOG, SEND_MESSAGE, RECEIVE_MESSAGE
 from ..client import Client
 from ..world import World
 from _thread import start_new_thread
@@ -140,7 +140,7 @@ class Server:
                 f'Client removed from server (reason: {reason}): {client}')
             client.valid = False
             client.disconnect()
-            self.update_world({KILL_ENTITY: client.id})
+            self.update_world({KILL_PLAYER_ENTITY: client.id})
         except:
             LOG.exception(f'Found issue while removing: {client}')
 
@@ -160,7 +160,7 @@ class Server:
                 client.valid = True
                 LOG.info('Connection validated. Confirming...')
                 SEND_MESSAGE(client.socket, RUN)
-                self.update_world({NEW_ENTITY: client.id})
+                self.update_world({NEW_PLAYER_ENTITY: client.id})
                 SEND_MESSAGE(client.socket, self.world)
 
     @client_exception_handler

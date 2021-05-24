@@ -16,7 +16,9 @@ logging.basicConfig(
 
 LOG = logging.getLogger("rich")
 
-# Networking config
+
+
+# Server config
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 12345
 # TIMEOUT = 1/60 # time in seconds
@@ -25,13 +27,14 @@ TIMEOUT = 1 # time in seconds
 # BUFFER = 1024 # size in bytes
 BUFFER = 1024*4 # size in bytes
 
+
 # Default messages
 INIT = 'INIT'
 KILL = 'KILL'
 RUN = 'RUN'
 
-NEW_ENTITY = 'NEW_ENTITY'
-KILL_ENTITY = 'KILL_ENTITY' 
+NEW_PLAYER_ENTITY = 'NEW_ENTITY'
+KILL_PLAYER_ENTITY = 'KILL_ENTITY' 
 
 def scramble(message):
     return message # TODO: Message scrambling

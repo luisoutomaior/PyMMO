@@ -28,7 +28,6 @@ server.connect((SERVER_IP, SERVER_PORT))
 
 
 pygame.init()
-
 font = pygame.font.SysFont('arial',  10)
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT), flags=pygame.SCALED)

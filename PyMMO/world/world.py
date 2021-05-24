@@ -1,4 +1,4 @@
-from ..helpers import NEW_ENTITY, KILL_ENTITY, LOG
+from ..helpers import NEW_PLAYER_ENTITY, KILL_PLAYER_ENTITY, LOG
 from ..entity.entity import Entity
 from random import random
 
@@ -9,11 +9,11 @@ class World:
         self.entities = {}
         
     def update(self, message):
-        if NEW_ENTITY in message:
-            self.add_entity({'id': message[NEW_ENTITY]})
+        if NEW_PLAYER_ENTITY in message:
+            self.add_entity({'id': 'player-' + message[NEW_PLAYER_ENTITY]})
             
-        elif KILL_ENTITY in message:
-            self.kill_entity(message[KILL_ENTITY])
+        elif KILL_PLAYER_ENTITY in message:
+            self.kill_entity(message[KILL_PLAYER_ENTITY])
             
         return self
     
