@@ -63,7 +63,8 @@ Adjust network settings by changing IP and port values in macros.py according to
 
 _(bold tasks are being actively worked on)_
 - **Animated graphics (90%)**
-- **Network stability (20%)**
+- **Network stability (70%)**
+- **Unit-tests (10%)**
 - **Background graphics (0%)**
 - **Monster/enemy graphics (0%)**
 - **Platforming mechanics (0%)**
@@ -71,8 +72,6 @@ _(bold tasks are being actively worked on)_
 - **RPG skills mechanics (0%)**
 - **RPG items mechanics (0%)**
 - **RPG gear mechanics (0%)**
-- Unit-tests (0%)
-- Server-side computations (20%)
 
 
 **This was put together in a rush to try to finish within a day or so... Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
@@ -83,3 +82,5 @@ _(bold tasks are being actively worked on)_
 
 - 16 May 2021: Published repository
 - 17 May 2021: Added animated graphics (0% -\> 90%)
+- 21 May 2021: OOP overhaul for unit-testing (0% -\> 10%)
+- 23 May 2021: Server-client communication overhaul. Working with 100+ clients. (0% -\> 70%)
