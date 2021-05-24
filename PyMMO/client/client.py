@@ -35,15 +35,11 @@ class Client:
                         f'SUCCESS. Entered server {self.server_ip}:{self.server_port} .')
                     received_world = RECEIVE_MESSAGE(self.socket)
                     self.world = received_world
-                    
-                    return True
-                elif received_message:
-                    LOG.info(f'Client Received: {received_message}')
         
         return True
 
     def disconnect(self):
-        LOG.info('Closing sockets...')
+        LOG.info(f'Closing Client {self} sockets...')
         SEND_MESSAGE(self.socket, KILL)
         self.socket.close()
 
@@ -56,8 +52,6 @@ class Client:
                 if received_message == KILL:
                     self.valid = False
                     LOG.info('Received kill request. Killing client...')
-                    SEND_MESSAGE(self.socket, KILL)
-                    
                 else:
                     LOG.info('Received world message from server. Running main loop:')
                     received_message.name = 'HELLO-'+str(self.id)
@@ -65,6 +59,7 @@ class Client:
                     
         else:
             LOG.exception('Client lost validity!')
+            self.disconnect()
             exit()
 
     def update_world(self, message):

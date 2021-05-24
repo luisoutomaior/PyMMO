@@ -7,7 +7,13 @@ import select
 from threading import active_count
 import time
 
-def client_handler(function):
+def client_exception_handler(function):
+    """Decorator for handling client exceptions
+
+    Args:
+        function: Server method
+    """
+    
     def wrapper(self, client):
         def kill_client():
             client.valid = False
@@ -20,7 +26,6 @@ def client_handler(function):
             kill_client()
 
         except (KeyboardInterrupt, ConnectionResetError, OSError, ValueError) as e:
-            LOG.exception(e)
             kill_client()
             exit('Disconnected. Bye!')
 
@@ -54,7 +59,7 @@ class Server:
         self.socket.bind((self.ip, self.port))
         self.socket.listen()
 
-        start_new_thread(self.client_killer, (time.time(),))
+        start_new_thread(self.server_maintainer, ())
         LOG.info('Server running! Waiting for clients...')
         while True:
             LOG.info(
@@ -66,34 +71,43 @@ class Server:
 
             start_new_thread(self.add_client, (new_client,))
             
-    def client_killer(self, init_time):
+    def server_maintainer(self):
+        """Searches for issues in clients and removes them accordingly
+        """
+        init_time = time.time()
         while True:
-            time.sleep(1)
-            clients_to_remove = []
-            for client in self.clients:
-                if 'socket.socket [closed]' in str(client.socket):
-                    LOG.error(f'{client.id} socket is closed. Removing from server...')
-                    clients_to_remove.append(client)
-            
-            for client_to_be_removed in clients_to_remove:
-                self.clients.remove(client_to_be_removed)
-                LOG.error(f'{client_to_be_removed.id} removed from server.')
-                
-                
-                
-            print((time.time() - init_time), active_count(), len(self.clients))
-
-    def stop(self):
-        for client in self.clients:
             try:
-                client.disconnect()
-            except:
-                LOG.exception(f'Found issue with: {client}')
+                time.sleep(1)
+                clients_to_remove = []
+                for client in self.clients:
+                    if 'socket.socket [closed]' in str(client.socket):
+                        LOG.error(f'{client.id} socket is closed. Removing from server...')
+                        clients_to_remove.append(client)
+                
+                for client_to_be_removed in clients_to_remove:
+                    self.remove_client(client_to_be_removed)
+                    
+                    
+                print((time.time() - init_time), active_count(), len(self.clients))
+            except BaseException as e:
+                LOG.exception(e)
+                
+    def stop(self):
+        """Stops server and removes all clients
+        
+        """
+        for client in self.clients:
+                self.remove_client(client)
 
         self.socket.close()
         LOG.info('Server Manually Disconnected.')
 
     def add_client(self, client):
+        """Adds new client to server
+
+        Args:
+            client (Client): new client to be added
+        """
         while not client.valid:
             self.init_client(client)
 
@@ -104,9 +118,28 @@ class Server:
 
         while client.valid:
             self.update_client(client)
+        
+    def remove_client(self, client, reason=None):
+        """Removes client from server
 
-    @client_handler
+        Args:
+            client (Client): client to be removed from server
+        """
+        try:
+            self.clients.remove(client)
+            LOG.error(f'Client removed from server (reason: {reason}): {client}')
+            client.valid = False
+            client.disconnect()
+        except:
+            LOG.exception(f'Found issue while removing: {client}')
+
+    @client_exception_handler
     def init_client(self, client):
+        """Initialize client instance and update their World with most recent one
+
+        Args:
+            client (Client): client to be initialized
+        """
         ready_sockets, _, _ = select.select([client.socket], [], [],
                                             TIMEOUT)
         if ready_sockets:
@@ -119,12 +152,14 @@ class Server:
                 self.update_world(NEW_ENTITY)
                 SEND_MESSAGE(client.socket, self.world)
 
-            elif received_message:
-                LOG.info(
-                    f'Server Received during Init Client: {received_message}')
 
-    @client_handler
+    @client_exception_handler
     def update_client(self, client):
+        """Watch client messages and updates the client world when needed
+
+        Args:
+            client (Client): client to be updated
+        """
         ready_sockets, _, _ = select.select([client.socket], [], [],
                                             TIMEOUT)
 
@@ -132,13 +167,10 @@ class Server:
             received_message = RECEIVE_MESSAGE(client.socket)
 
             if received_message == KILL:
-                client.valid = False
-                client.disconnect()
-                exit(f'Client {client} disconnected via KILL command.')
+                self.remove_client(client, received_message)
 
             else:
-                LOG.info(
-                    f'Received update from client {client}: {received_message}')
+                LOG.info(f'Received update from client {client})')
                 self.update_world(received_message)
 
                 LOG.info(f'Sending latest world to client {client}.')
@@ -146,7 +178,16 @@ class Server:
                 LOG.info('Sent latest world to client.')
             
     def update_world(self, message):
+        """Updates server-wide World according to message
+
+        Args:
+            message (str, World): message to be used to update the server World. Use either a helpers.py macro keyword or a World object.
+
+        Returns:
+            bool: True if World updated successfully
+        """
         LOG.info('Updating server world...')
+        LOG.info(message)
         self.world.update(message)
         LOG.info('World has been updated. Summary:')
         LOG.info(self.world)

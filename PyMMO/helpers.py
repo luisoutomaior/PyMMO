@@ -44,15 +44,15 @@ def decode(message):
     return pickle.loads(descramble(message))
 
 def SEND_MESSAGE(to_socket, message):
-    LOG.info(f'<<< send_message sending... {message}')
+    LOG.info(f'<<< sending...')
     status = to_socket.send(encode(message))
-    LOG.info(f'<<< send_message sent.')
+    LOG.info(f'<<< sent: {message}')
     return status
 
 def RECEIVE_MESSAGE(from_socket):
-    LOG.info(f'>>> receive_message receiving...')
+    LOG.info(f'>>> receiving...')
     message = decode(from_socket.recv(BUFFER))
-    LOG.info(f'>>> receive_message received: {message}')
+    LOG.info(f'>>> received: {message}')
     return message
 
 

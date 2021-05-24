@@ -9,15 +9,7 @@ class HelloWorld(World):
         self.prev_time = 0
 
     def main_loop(self, new_world):
-        ########################
-        # Do something to world
-        # e.g. create new entities, add/change sprites, calculate stuff, etc
-        time.sleep(0.001)
-        # print(f'Hello world! {new_world}')
-        
-        # whatever you return will persist in the server
-        # and will be consistent across all clients
-        ########################
+        time.sleep(1)
         print(f'{self} time difference: {time.time() - self.prev_time} seconds')
         input('Press any key to update world...')
         self.prev_time = time.time()
