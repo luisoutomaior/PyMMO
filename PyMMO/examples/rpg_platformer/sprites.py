@@ -14,19 +14,19 @@ class EntitySprite(pygame.sprite.Sprite):
     def __init__(self, entity, color=GREEN):
         pygame.sprite.Sprite.__init__(self)
         self.entity = entity
-        self.id = self.entity['id']
+        
+        # Position and Movement
         self.pos = self.entity['pos']
-        self.speed = (0, 0)
+        self.speed = self.entity['speed']
+        self.accel = self.entity['accel']
+        
         self.stats = self.entity['stats']
 
+        # Appearance
         self.image = pygame.Surface((64, 64))
-
         self.foreground = None
-
         self.color = color
-
         self.rect = self.image.get_rect()
-
         self.rect.centerx = self.pos[0]
         self.rect.centery = self.pos[1]
 
@@ -86,13 +86,12 @@ class EntitySprite(pygame.sprite.Sprite):
         self.kill()
 
     def speak(self):
-        print('=> SPEAK:\t' + self.id + ': ' + self.stats['text'])
+        print('=> SPEAK:\t' + self.entity['id'] + ': ' + self.stats['text'])
 
 
 class HealthBarSprite(EntitySprite):
     def __init__(self, entity_sprite):
         entity = deepcopy(entity_sprite.entity)
-        entity['id'] = str(entity['id']) + '_HealthBar'
         super(HealthBarSprite, self).__init__(entity)
         self.entity = entity_sprite
 
@@ -125,7 +124,7 @@ class EntityNameSprite(EntitySprite):
         super(EntityNameSprite, self).__init__(entity)
         self.entity = entity_sprite
 
-        self.text = font.render(name + entity['id'], False, WHITE)
+        self.text = font.render(name + str(entity['id']), False, WHITE)
         self.image = pygame.Surface((self.text.get_rect().width, 10))
         self.image.fill(DARKGREY)
 

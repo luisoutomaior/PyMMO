@@ -10,10 +10,10 @@ class World:
         
     def update(self, message):
         if NEW_PLAYER_ENTITY in message:
-            self.add_entity({'id': 'player-' + str(message[NEW_PLAYER_ENTITY])})
+            self.add_entity(id=message[NEW_PLAYER_ENTITY])
             
         elif KILL_PLAYER_ENTITY in message:
-            self.kill_entity(message[KILL_PLAYER_ENTITY])
+            self.kill_entity(id=message[KILL_PLAYER_ENTITY])
             
         return self
     
@@ -21,8 +21,8 @@ class World:
         return str(random())[2:]
 
     
-    def add_entity(self, entity_spec: dict):
-        entity = Entity(entity_spec)
+    def add_entity(self, id, entity_class=Entity, **kwargs):
+        entity = entity_class(id, **kwargs)
         self.entities[entity.id] = entity
         return self.entities
     
@@ -41,6 +41,8 @@ class World:
         # and will be consistent across all clients
         ########################
         return new_world
+
+
 
     def __str__(self):
         return f"World: {self.name}. Number of entities: {len(self.entities)}"
