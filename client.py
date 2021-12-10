@@ -169,6 +169,7 @@ while running:
 
                 if len(response['commands']):
                     print('sending:')
+                    response = {'action': 'commands', 'value': response}
                     print(response)
                     server.send(pickle.dumps(response))
 
@@ -179,7 +180,7 @@ while running:
 
     except Exception as e:
         print('global error: ' + str(e))
-        server.send(pickle.dumps(e))
+        server.send(pickle.dumps({'action': 'error', 'value': {'error': e}}))
         traceback.print_exc()
         exit()
 

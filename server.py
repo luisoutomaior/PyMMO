@@ -1,143 +1,183 @@
+import sys
+import time
 import socket
 import select
-from macros import *
-import time
-import _pickle as pickle
-
-import traceback
-from _thread import *
-import numpy as np
+import pickle
+import threading
 from pprint import pprint
+from typing import Dict, Any
+
+from macros import *
 
 
-status = {'working': True, 'players': [], 'enemies': []}
+class ResponseHandler:
+    def handle_commands(self, status: Dict[str, Any], response: Dict[str, Any]) -> Dict[str, Any]:
+        for command in response['commands']:
+            cmd = list(command.keys())[0]
+            handler = getattr(self, f'_handle_{cmd}', None)
+
+            if callable(handler):
+                status = handler(status, command[cmd])
+            else:
+                print(f'No handler for {cmd}')
+
+        # print('new status:')
+        # pprint(status)
+
+        return status
+
+    @staticmethod
+    def _handle_movement(status: Dict[str, Any], command: Dict[str, Any]) -> Dict[str, Any]:
+        for player in status['players']:
+            if player['id'] == command['id']:
+                player['pos'] = command['pos']
+                player['dir'] = command['dir']
+
+        return status
+
+    @staticmethod
+    def _handle_animation(status: Dict[str, Any], command: Dict[str, Any]) -> Dict[str, Any]:
+        for player in status['players']:
+            if player['id'] == command['id']:
+                player['stats']['animating'] = command['stats']['animating']
+                player['stats']['foreground_loc'] = command['stats']['foreground_loc']
+                player['stats']['foreground_idx'] = command['stats']['foreground_idx']
+
+        return status
+
+    @staticmethod
+    def _handle_speak(status: Dict[str, Any], command: Dict[str, Any]) -> Dict[str, Any]:
+        for player in status['players']:
+            if player['id'] == command['id']:
+                player['stats']['text'] = command['stats']['text']
+                player['stats']['speaking'] = command['stats']['speaking']
+                player['stats']['speaking_time'] = command['stats']['speaking_time']
+
+            if player['stats']['speaking_time'] <= 0:
+                player['stats']['speaking_time'] = DEFAULT_CHAT_TIME
+                
+                if player['stats']['speaking']:
+                    player['stats']['text'] = ''
+                    player['stats']['speaking'] = False
+
+        return status
+
+    @staticmethod
+    def _handle_damage(status: Dict[str, Any], command: Dict[str, Any]) -> Dict[str, Any]:       
+        if 'to-enemy' in command['type']:
+            for enemy in status['enemies']:
+                if enemy['id'] == command['hitted']['id']:
+                    enemy['stats']['hp'] = command['hitted']['stats']['hp']
+                    
+                    if command['hitted']['stats']['alive'] == False:
+                        status['enemies'].remove(enemy)
+                
+        if 'to-player' in command['type']:
+            for player in status['players']:
+                if player['id'] == command['hitted']['id']:
+                    player['stats']['hp'] = command['hitted']['stats']['hp']
+                    
+                    if command['hitted']['stats']['alive'] == False:
+                        status['players'].remove(player)
+
+        return status
 
 
-def threaded_client(conn, status):
+class PyMMOServer:
+    def __init__(self, host: str, port: int, response_handler: ResponseHandler) -> None:
+        self.HEADER = 1024  # Default header length
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Server socket
 
-    while True:
-        status_update = False    
-        ready_sockets, _, _ = select.select([conn], [], [], SERVER_TIMEOUT)
-        if ready_sockets:
-                try:
-                    response = pickle.loads(conn.recv(1024))
-                    if 'commands' in response:
-                        print('old status:')
-                        pprint(status)
-                        print('received:')
-                        pprint(response)
-                        for command in response['commands']:
-                            if 'movement' in command:
-                                command = command['movement']
-                                for player in status['players']:
-                                    if player['id'] == command['id']:
-                                        player['pos'] = command['pos']
-                                        player['dir'] = command['dir']
-                                        
-                            if 'animation' in command:
-                                command = command['animation']
-                                
-                                for player in status['players']:
-                                    if player['id'] == command['id']:
-                                        player['stats']['animating'] = command['stats']['animating']
-                                        player['stats']['foreground_loc'] = command['stats']['foreground_loc']
-                                        player['stats']['foreground_idx'] = command['stats']['foreground_idx']
+        self.host = host
+        self.port = port
 
-                            if 'speak' in command:
-                                command = command['speak']
-                                for player in status['players']:
-                                    if player['id'] == command['id']:
-                                        player['stats']['text'] = command['stats']['text']
-                                        player['stats']['speaking'] = command['stats']['speaking']
-                                        player['stats']['speaking_time'] = command['stats']['speaking_time']
+        self.response_handler = response_handler
+        self.status = {'working': True, 'players': [], 'enemies': []}
+        self.__total_player_count = 0
 
-                                    if player['stats']['speaking_time'] <= 0:
-                                        player['stats']['speaking_time'] = DEFAULT_CHAT_TIME
-                                        
-                                        if player['stats']['speaking']:
-                                            player['stats']['text'] = ''
-                                            player['stats']['speaking'] = False
-                                        
-                                        
-                            if 'damage' in command:
-                                command = command['damage']
-                                pprint(response)
-                                
-                                if 'to-enemy' in command['type']:
-                                    for enemy in status['enemies']:
-                                        if enemy['id'] == command['hitted']['id']:
-                                            enemy['stats']['hp'] = command['hitted']['stats']['hp']
-                                            
-                                            if command['hitted']['stats']['alive'] == False:
-                                                status['enemies'].remove(enemy)
-                                        
-                                if 'to-player' in command['type']:
-                                    for player in status['players']:
-                                        if player['id'] == command['hitted']['id']:
-                                            player['stats']['hp'] = command['hitted']['stats']['hp']
-                                            
-                                            if command['hitted']['stats']['alive'] == False:
-                                                status['players'].remove(player)
-
-                        print('new status:')
-                        pprint(status)
-                        
-                        status_update = True
-                        conn.send(pickle.dumps(status))
-                        
-                except Exception as e:
-                    traceback.print_exc()
-                    break
-        
-        if not status_update:
-            conn.send(pickle.dumps(status))
-
-
-def start_server():
-    n_players = 0
-    clients = set()
-
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    print('Starting up server...')
-    s.bind(('127.0.0.1', SERVER_PORT))
-    s.listen(2)
-
-    # Allow timeout to process KeyboardInterrupt
-    s.settimeout(1.0)
-
-    print('Done! Now listening...', flush=True)
-
-
-    while True:
         try:
-            client, address = s.accept()
+            self.server.bind((host, port))
+            self.server.listen()
+            self.server.settimeout(1.0)  # Allow timeout to process KeyboardInterrupt
+        except Exception as error:
+            print(f'[ERROR IN CREATING A SERVER] {error}')
+            sys.exit()
+        else:
+            print(f'[SERVER IS LISTENING] @ {host}:{port}')
 
-            clients.add(client)
-            conn_time = time.time()
-            n_players += 1
-
-            print(f'Connection has been established with: {address} at {conn_time}. Welcome :)')
-
-            id = str(n_players)
-            status['players'].append({'id': id, 'pos': (WIDTH/2, HEIGHT/2), 'dir': RIGHT, 'stats': INIT_STATS()})
-            # status['enemies'].append({'id': id, 'pos': (np.random.randint(WIDTH), np.random.randint(HEIGHT)), 'stats': INIT_STATS()})
-
-            client.send(pickle.dumps(id))
-
+    def run(self) -> None:
+        while True:
             try:
-                start_new_thread(threaded_client, (client, status))
-            except BaseException as e:
-                print('Server Exception:', e)
-                traceback.print_exc()
+                client, address = self.server.accept()
+                self.__total_player_count += 1
 
-        except socket.timeout:
-            continue
-        except KeyboardInterrupt:
-            s.close()
-            exit()
+                self._establish_connection(address, time.time())
+                client.send(pickle.dumps(str(self.__total_player_count)))
+
+                conn_thread = threading.Thread(target=self._handler, args=(client, self.status))
+                conn_thread.start()
+            except socket.timeout:
+                continue
+            except KeyboardInterrupt:
+                self.socket.close()
+                sys.exit()
+            except BaseException as error:
+                print(f'[SERVER EXCEPTION] {error}')
+                self.socket.close()
+                sys.exit()
+
+    def _handler(self, conn: socket.socket, status: Dict[str, Any]) -> None:
+        while True:
+            ready_sockets, _, _ = select.select([conn], [], [], SERVER_TIMEOUT)
+
+            if not ready_sockets:
+                conn.send(pickle.dumps(status))
+                continue
+            
+            # response format:
+            # for commands: {'action': 'commands', 'value': {'commands': ...}}
+            # for errors: {'action': 'error', 'value': {'error': ...}}
+            try:
+                response = pickle.loads(conn.recv(self.HEADER))
+                handler = getattr(self.response_handler, f'handle_{response["action"]}', None)
+                
+                if callable(handler):
+                    # print('old status:')
+                    # pprint(status)
+                    # print('received:')
+                    # pprint(response)
+                    status = handler(status, response['value'])
+                    conn.send(pickle.dumps(status))
+                else:
+                    print(f'No handler for {response["action"]}')
+                    
+            except Exception as e:
+                # traceback.print_exc()
+                break
+
+    def _establish_connection(self, address: str, time_connected: float) -> None:
+        print(f'Connection has been established with: {address} at {time_connected}. Welcome :)')
+
+        self.status['players'].append({
+            'id': str(self.__total_player_count),
+            'pos': (WIDTH/2, HEIGHT/2), 
+            'dir': RIGHT, 
+            'stats': INIT_STATS()
+        })
+
+    @property
+    def total_player_count(self) -> int:
+        return self.__total_player_count
+
+    @property
+    def active_player_count(self) -> int:
+        return threading.activeCount() - 1  # Subtract 1 to exclude the main thread
 
 
-# Main Entry Point
-if __name__ == "__main__":
-    start_server()
+def main() -> None:
+    server = PyMMOServer('127.0.0.1', SERVER_PORT, ResponseHandler())
+    server.run()
+
+
+if __name__ == '__main__':
+    main()
