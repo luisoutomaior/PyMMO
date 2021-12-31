@@ -76,10 +76,3 @@ _(bold tasks are being actively worked on)_
 
 
 **This was put together in a rush to try to finish within a day or so... Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
-
-
-
-## Work log
-
-- 16 May 2021: Published repository
-- 17 May 2021: Added animated graphics (0% -\> 90%)
