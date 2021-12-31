@@ -75,4 +75,4 @@ _(bold tasks are being actively worked on)_
 - Server-side computations (20%)
 
 
-**This was put together in a rush to try to finish within a day or so... Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
+**Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
