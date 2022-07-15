@@ -1,6 +1,4 @@
 
-## Looking for collaborators! Please send me a message on [reddit](https://www.reddit.com/user/PaleontologistIcy652)
-
 ![pymmo](https://github.com/luisoutomaior/pymmo/blob/main/pymmo.png?raw=true)
 
 
