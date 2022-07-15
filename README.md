@@ -51,26 +51,3 @@ Adjust network settings by changing IP and port values in macros.py according to
 - **Chat** in-game by pressing any lowercase letter to write text to the in-game chat floatting bubble. Press enter to publish the text bubble you entered to all other players in the scene.
 
 
-
-
-
-
-
-## WORK IN PROGRESS! Needs some work (please feel free to contribute!):
-
-
-_(bold tasks are being actively worked on)_
-- **Animated graphics (90%)**
-- **Network stability (20%)**
-- **Background graphics (0%)**
-- **Monster/enemy graphics (0%)**
-- **Platforming mechanics (0%)**
-- **RPG stats mechanics (0%)**
-- **RPG skills mechanics (0%)**
-- **RPG items mechanics (0%)**
-- **RPG gear mechanics (0%)**
-- Unit-tests (0%)
-- Server-side computations (20%)
-
-
-**Contributions such as additional features, code polishment/review/refactoring, optimization, are not only needed, but would be highly appreciated!! Huge thanks in advance! :)**
